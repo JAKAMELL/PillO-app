@@ -26,7 +26,7 @@
 html,body{height:100%;overflow:hidden;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;}
 .screen{position:fixed;inset:0;max-width:430px;margin:0 auto;display:flex;flex-direction:column;z-index:10;background:var(--bg);transition:opacity .35s,transform .35s;}
-.screen.hidden{opacity:0;pointer-events:none;transform:translateY(16px);}
+.screen.hidden{opacity:0;pointer-events:none !important;transform:translateY(16px);visibility:hidden;}
 *{scrollbar-width:none;}*::-webkit-scrollbar{display:none;}
 
 /* ── SPLASH ── */
@@ -83,8 +83,8 @@ select.form-i{appearance:none;-webkit-appearance:none;}
 .prog-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
 .prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);}
 .prof-pages{flex:1;overflow:hidden;position:relative;}
-.prof-page{position:absolute;inset:0;padding:20px 20px 0;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s cubic-bezier(.4,0,.2,1);}
-.prof-page.active{opacity:1;transform:translateX(0);pointer-events:all;}
+.prof-page{position:absolute;inset:0;padding:20px 20px 0;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none !important;transition:all .35s cubic-bezier(.4,0,.2,1);}
+.prof-page.active{opacity:1;transform:translateX(0);pointer-events:all !important;}
 .prof-page.out{opacity:0;transform:translateX(-28px);}
 .q-brow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:7px;}
 .q-title{font-size:20px;font-weight:900;letter-spacing:-.4px;line-height:1.2;margin-bottom:5px;}
@@ -121,7 +121,7 @@ select.form-i{appearance:none;-webkit-appearance:none;}
 /* ── MED SETUP ── */
 #s-med-setup{overflow:hidden;}
 .med-setup-pages{flex:1;overflow:hidden;position:relative;}
-.med-page{position:absolute;inset:0;padding:16px 20px 0;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s;}
+.med-page{position:absolute;inset:0;padding:16px 20px 0;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none !important;transition:all .35s;}
 .med-page.active{opacity:1;transform:translateX(0);pointer-events:all;}
 .med-page.out{opacity:0;transform:translateX(-28px);}
 .med-card-preview{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
