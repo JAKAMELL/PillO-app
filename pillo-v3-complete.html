@@ -371,7 +371,7 @@ select.form-i{appearance:none;-webkit-appearance:none;}
       <div class="q-sub">Helps pillO personalize your experience.</div>
       <div class="form-g">
         <label class="form-l">Age range</label>
-        <select class="form-i" id="pp-age" onchange="ppVal()">
+        <select class="form-i" id="pp-age" onchange="ppProf.ageGroup=this.value;ppVal()">
           <option value="">Select your age range</option>
           <option value="13-17">13–17 years</option>
           <option value="18-24">18–24 years</option>
@@ -421,7 +421,7 @@ select.form-i{appearance:none;-webkit-appearance:none;}
       </div>
       <div style="margin-top:12px;" class="form-g">
         <label class="form-l">Country</label>
-        <select class="form-i" id="pp-country" onchange="ppVal()">
+        <select class="form-i" id="pp-country" onchange="ppProf.country=this.value;ppVal()">
           <option value="">Select your country</option>
           <option value="CO">🇨🇴 Colombia</option>
           <option value="US">🇺🇸 United States</option>
@@ -948,7 +948,11 @@ function ppVal(){
   let v=false;
   switch(ppStep){
     case 1:v=document.getElementById('pp-name').value.trim().length>=2;break;
-    case 2:v=ppProf.ageGroup!==''&&ppProf.gender!=='';break;
+    case 2:
+      // Also read directly from select in case onchange didn't fire
+      const ageEl=document.getElementById('pp-age');
+      if(ageEl&&ageEl.value) ppProf.ageGroup=ageEl.value;
+      v=ppProf.ageGroup!==''&&ppProf.gender!=='';break;
     case 3:v=true;break; // optional
     case 4:v=ppProf.role!=='';break;
     case 5:v=ppProf.conditions.length>0;break;
