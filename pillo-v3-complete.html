@@ -858,12 +858,27 @@ window.addEventListener('load',()=>{
     document.getElementById('sp-slogan').classList.add('show');
     playBrandSound();
   },600);
+
+  // Force show login after 2.5s max — don't wait for Firebase
+  let routed = false;
+  const splashTimeout = setTimeout(()=>{
+    if(!routed){ routed=true; ss('login'); }
+  }, 2500);
+
   auth.onAuthStateChanged(user=>{
-    if(user){
+    if(!routed){
+      routed=true;
+      clearTimeout(splashTimeout);
+      if(user){
+        CU=user;
+        checkAndRoute();
+      } else {
+        setTimeout(()=>ss('login'),2400);
+      }
+    } else if(user && CU===null) {
+      // Firebase responded after timeout — route now
       CU=user;
-      setTimeout(()=>checkAndRoute(),2400);
-    } else {
-      setTimeout(()=>ss('login'),2400);
+      checkAndRoute();
     }
   });
 });
