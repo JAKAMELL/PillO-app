@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080F1E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="pillO">
+<link rel="manifest" href="manifest.json">
+<title>pillO — Your health buddy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --bg:#080F1E; --bg2:#0F1F3D; --bg3:#1A2F50; --bg4:#243D64;
+  --border:#1E3A5F; --b2:#2E5080;
+  --text:#F0F6FF; --muted:#7B9EC4; --faint:#3A5878;
+  --green:#3ECFAA; --green-bg:#0A2E25; --green-t:#A8F0DD;
+  --amber:#F5A623; --amber-bg:#2E1A00; --amber-t:#FFD99A;
+  --red:#E84545; --red-bg:#2E0A0A; --red-t:#FFAAAA;
+  --blue:#4A90D9; --purple:#8B6FD4;
+  --r:16px; --rs:10px; --rx:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;position:relative;display:flex;flex-direction:column;}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;max-width:430px;margin:0 auto;display:flex;flex-direction:column;transition:opacity .3s,transform .3s;z-index:1;}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px);}
+
+/* ── SPLASH ── */
+#screen-splash{background:var(--bg);align-items:center;justify-content:center;gap:0;}
+.splash-glow{position:absolute;width:280px;height:280px;background:rgba(62,207,170,.1);border-radius:50%;filter:blur(80px);top:35%;left:50%;transform:translate(-50%,-50%);}
+.splash-logo{font-size:48px;font-weight:900;letter-spacing:-2.5px;position:relative;z-index:1;}
+.splash-logo em{font-style:normal;color:var(--green);}
+.splash-tag{font-size:13px;color:var(--muted);letter-spacing:.06em;margin-top:8px;position:relative;z-index:1;}
+.splash-loader{position:absolute;bottom:60px;display:flex;gap:6px;}
+.loader-dot{width:6px;height:6px;border-radius:50%;background:var(--border);animation:ldot 1.2s ease-in-out infinite;}
+.loader-dot:nth-child(2){animation-delay:.2s;}
+.loader-dot:nth-child(3){animation-delay:.4s;}
+@keyframes ldot{0%,80%,100%{transform:scale(.8);background:var(--border);}40%{transform:scale(1.2);background:var(--green);}}
+
+/* ── ONBOARDING ── */
+#screen-onboard{background:var(--bg);}
+.ob-wrap{flex:1;overflow:hidden;position:relative;}
+.ob-slides{display:flex;height:100%;transition:transform .4s cubic-bezier(.4,0,.2,1);}
+.ob-slide{flex-shrink:0;width:100%;padding:40px 28px 24px;display:flex;flex-direction:column;}
+.ob-dots{display:flex;gap:5px;justify-content:center;margin-bottom:32px;}
+.ob-dot{height:6px;border-radius:3px;background:var(--border);transition:all .3s;}
+.ob-dot.active{width:20px;background:var(--green);}
+.ob-dot.done{width:6px;background:var(--green);opacity:.4;}
+.ob-mascot{display:flex;justify-content:center;margin-bottom:28px;}
+.ob-mascot svg{filter:drop-shadow(0 8px 32px rgba(62,207,170,.25));}
+.ob-title{font-size:28px;font-weight:900;letter-spacing:-.8px;line-height:1.15;margin-bottom:12px;}
+.ob-title em{font-style:normal;color:var(--green);}
+.ob-sub{font-size:14px;color:var(--muted);line-height:1.65;flex:1;}
+.ob-actions{padding:20px 28px 32px;display:flex;flex-direction:column;gap:10px;}
+.ob-btn-primary{width:100%;padding:15px;background:var(--green);color:#04160F;border-radius:var(--r);font-size:15px;font-weight:900;border:none;font-family:'DM Sans',sans-serif;cursor:pointer;transition:transform .12s;}
+.ob-btn-primary:active{transform:scale(.98);}
+.ob-btn-ghost{width:100%;padding:12px;background:transparent;color:var(--muted);border-radius:var(--r);font-size:14px;font-weight:600;border:1px solid var(--border);font-family:'DM Sans',sans-serif;cursor:pointer;}
+.ob-feature{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
+.ob-feature-icon{width:40px;height:40px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ob-feature-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.ob-feature-desc{font-size:11px;color:var(--muted);}
+
+/* ── LOGIN ── */
+#screen-login{background:var(--bg);align-items:center;padding:40px 24px 32px;justify-content:center;}
+.login-face{margin-bottom:24px;filter:drop-shadow(0 8px 32px rgba(62,207,170,.2));}
+.login-title{font-size:28px;font-weight:900;letter-spacing:-.8px;margin-bottom:6px;text-align:center;}
+.login-title em{font-style:normal;color:var(--green);}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:32px;line-height:1.5;}
+.login-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.login-btn{width:100%;padding:14px 16px;border-radius:var(--r);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .12s,opacity .12s;}
+.login-btn:active{transform:scale(.98);opacity:.9;}
+.login-btn-google{background:#fff;color:#1a1a1a;}
+.login-btn-apple{background:#000;color:#fff;}
+.login-btn-email{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+.login-divider{display:flex;align-items:center;gap:10px;width:100%;margin:4px 0 14px;}
+.login-div-line{flex:1;height:1px;background:var(--border);}
+.login-div-txt{font-size:11px;color:var(--faint);}
+.login-terms{font-size:10px;color:var(--faint);text-align:center;line-height:1.6;max-width:280px;}
+.login-terms a{color:var(--muted);}
+
+/* ── MAIN APP ── */
+#screen-app{background:var(--bg);flex-direction:column;}
+.app-hdr{padding:env(safe-area-inset-top,44px) 20px 0;background:var(--bg);flex-shrink:0;z-index:10;}
+.app-hdr-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0 14px;border-bottom:1px solid var(--border);}
+.app-logo{font-size:22px;font-weight:900;letter-spacing:-1px;}
+.app-logo em{font-style:normal;color:var(--green);}
+.app-date{font-size:11px;color:var(--muted);margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.hdr-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green);overflow:hidden;cursor:pointer;}
+.hdr-avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* TABS */
+.app-tabs{display:flex;gap:6px;padding:10px 20px 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.app-tabs::-webkit-scrollbar{display:none;}
+.app-tab{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.app-tab.active{background:var(--green);color:#04160F;border-color:var(--green);}
+
+/* PAGES */
+.app-pages{flex:1;overflow:hidden;position:relative;}
+.app-page{position:absolute;inset:0;overflow-y:auto;padding:16px 16px calc(80px + env(safe-area-inset-bottom,20px));scrollbar-width:none;display:none;}
+.app-page::-webkit-scrollbar{display:none;}
+.app-page.active{display:block;}
+
+/* BOTTOM NAV */
+.app-bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom,12px);z-index:40;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;font-weight:700;color:var(--faint);cursor:pointer;padding:4px 0;transition:color .15s;text-transform:uppercase;letter-spacing:.04em;}
+.bni.active{color:var(--green);}
+.bni svg{transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.bni.active svg{transform:scale(1.15);}
+
+/* FAB */
+.app-fab{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,12px));right:20px;z-index:50;width:54px;height:54px;border-radius:50%;background:var(--green);color:#04160F;font-size:26px;font-weight:300;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(62,207,170,.35);transition:transform .15s;font-family:'DM Sans',sans-serif;}
+.app-fab:active{transform:scale(.93);}
+
+/* PILLO WIDGET */
+.pillo-widget{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rx);padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:16px;transition:border-color .3s;}
+.pillo-face-wrap{flex-shrink:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+.pillo-widget.bounce .pillo-face-wrap{transform:scale(1.12) rotate(-3deg);}
+.pillo-mood{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--green);margin-bottom:4px;}
+.pillo-msg{font-size:13px;font-weight:500;line-height:1.45;color:var(--text);}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center;}
+.stat-n{font-size:24px;font-weight:900;letter-spacing:-1px;}
+.stat-l{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+
+/* SECTION */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;}
+
+/* MED CARD */
+.med-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:10px;position:relative;overflow:hidden;transition:border-color .2s;}
+.med-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc,var(--faint));border-radius:3px 0 0 3px;}
+.med-card.overdue{border-color:rgba(232,69,69,.3);}
+.med-card.pending{border-color:rgba(245,166,35,.3);}
+.med-card.taken{opacity:.55;}
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.mc-name{font-size:15px;font-weight:700;letter-spacing:-.3px;}
+.mc-dose{font-size:11px;color:var(--muted);margin-top:2px;}
+.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.mc-meta{display:flex;gap:12px;margin-bottom:10px;}
+.mc-mi{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+.mc-actions{display:flex;gap:7px;}
+.btn{flex:1;padding:9px;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:transform .12s;}
+.btn:active{transform:scale(.97);}
+.btn-confirm{background:var(--green);color:#04160F;}
+.btn-snooze{background:var(--bg3);color:var(--muted);border:1px solid var(--border);}
+.btn-skip{background:var(--red-bg);color:var(--red-t);}
+.mc-menu{position:absolute;top:12px;right:12px;}
+.mc-mbtn{background:none;border:none;color:var(--faint);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;}
+.mc-dd{position:absolute;right:0;top:26px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;z-index:20;display:none;min-width:130px;}
+.mc-dd.open{display:block;}
+.mc-ddi{padding:10px 14px;font-size:12px;cursor:pointer;color:var(--text);transition:background .1s;font-family:'DM Sans',sans-serif;}
+.mc-ddi:hover{background:var(--border);}
+.mc-ddi.danger{color:var(--red);}
+
+/* ALARM */
+.alarm-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.9);display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0);opacity:0;pointer-events:none;transition:opacity .3s;}
+.alarm-overlay.show{opacity:1;pointer-events:all;}
+.alarm-sheet{background:var(--bg2);border:1px solid var(--b2);border-radius:var(--rx) var(--rx) 0 0;padding:24px 22px 28px;width:100%;max-width:430px;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);}
+.alarm-overlay.show .alarm-sheet{transform:translateY(0);}
+.alarm-handle{width:32px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px;}
+.alarm-face{display:flex;justify-content:center;margin-bottom:14px;}
+.alarm-face svg{animation:alarmShake .6s ease-in-out;}
+@keyframes alarmShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-5px) rotate(-3deg)}40%{transform:translateX(5px) rotate(3deg)}60%{transform:translateX(-3px) rotate(-2deg)}80%{transform:translateX(3px) rotate(2deg)}}
+.alarm-ttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:center;margin-bottom:6px;}
+.alarm-med-name{font-size:22px;font-weight:900;text-align:center;letter-spacing:-.5px;margin-bottom:3px;}
+.alarm-dose{font-size:13px;color:var(--muted);text-align:center;margin-bottom:5px;}
+.alarm-count{font-size:11px;font-weight:700;color:var(--red);text-align:center;margin-bottom:20px;min-height:16px;}
+.alarm-confirm{width:100%;padding:15px;border-radius:var(--r);background:var(--green);color:#04160F;font-size:15px;font-weight:900;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:9px;transition:transform .12s;}
+.alarm-confirm:active{transform:scale(.98);}
+.alarm-snooze{width:100%;padding:12px;border-radius:var(--r);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:7px;}
+.alarm-skip{width:100%;padding:9px;border-radius:var(--r);background:transparent;color:var(--faint);font-size:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ADD MED MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border-radius:var(--rx) var(--rx) 0 0;padding:22px 20px calc(28px + env(safe-area-inset-bottom,20px));width:100%;max-width:430px;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);scrollbar-width:none;}
+.modal::-webkit-scrollbar{display:none;}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-handle{width:32px;height:4px;background:var(--b2);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-size:20px;font-weight:900;letter-spacing:-.5px;margin-bottom:20px;}
+.form-g{margin-bottom:13px;}
+.form-l{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;display:block;}
+.form-i{width:100%;padding:13px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
+.form-i:focus{border-color:var(--green);}
+.form-i::placeholder{color:var(--faint);}
+.freq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.freq-opt{padding:9px 6px;border-radius:var(--rs);background:var(--bg3);border:1px solid var(--border);text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.freq-opt.sel{background:var(--green-bg);color:var(--green-t);border-color:var(--green);}
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px;}
+.day-opt{padding:8px 0;border-radius:8px;background:var(--bg3);border:1px solid var(--border);text-align:center;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.day-opt.sel{background:var(--bg2);color:var(--blue);border-color:var(--blue);}
+.btn-save{width:100%;padding:14px;border-radius:var(--r);background:var(--green);color:#04160F;font-size:15px;font-weight:900;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:transform .12s;}
+.btn-save:active{transform:scale(.98);}
+.btn-cancel{width:100%;padding:12px;border-radius:var(--r);background:transparent;color:var(--muted);font-size:13px;border:1px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;}
+
+/* HISTORY */
+.ring-card{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;}
+.ring-pct-txt{font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--green);}
+.ring-sub-txt{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.week-dots{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:16px;}
+.wd{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.wd-lbl{font-size:9px;font-weight:700;color:var(--muted);}
+.wd-lbl.today{color:var(--green);}
+.wd-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.log-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+.log-item:last-child{border-bottom:none;}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.log-info{flex:1;}
+.log-name{font-size:13px;font-weight:700;}
+.log-time{font-size:10px;color:var(--muted);margin-top:2px;}
+.log-status{font-size:11px;font-weight:700;}
+
+/* SETTINGS */
+.settings-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;border-bottom:1px solid var(--border);cursor:pointer;}
+.srow:last-child{border-bottom:none;}
+.srow-l{font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+.srow-r{font-size:12px;color:var(--muted);}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;}
+.toggle.on::after{transform:translateX(18px);}
+
+/* PROFILE HEADER */
+.profile-hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 16px;display:flex;align-items:center;gap:14px;margin-bottom:16px;border-radius:var(--r);}
+.p-avatar{width:52px;height:52px;border-radius:50%;background:var(--bg4);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--green);overflow:hidden;flex-shrink:0;}
+.p-avatar img{width:100%;height:100%;object-fit:cover;}
+.p-name{font-size:16px;font-weight:700;}
+.p-email{font-size:11px;color:var(--muted);margin-top:2px;}
+.p-plan{font-size:10px;color:var(--green);font-weight:700;margin-top:3px;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:var(--faint);}
+.empty-t{font-size:16px;font-weight:700;color:var(--muted);margin-bottom:8px;margin-top:12px;}
+.empty-s{font-size:13px;line-height:1.6;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,12px));left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg3);border:1px solid var(--b2);border-radius:20px;padding:9px 18px;font-size:13px;font-weight:600;color:var(--text);z-index:200;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* STREAK */
+.streak-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+.streak-num{font-size:36px;font-weight:900;letter-spacing:-2px;color:var(--green);}
+.streak-info{}
+.streak-label{font-size:13px;font-weight:700;}
+.streak-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+*{scrollbar-width:none;}
+*::-webkit-scrollbar{display:none;}
+
+.splash-slogan.show{opacity:1 !important;}
+#splash-pillo{opacity:0;transform:scale(.7);transition:all .8s cubic-bezier(.34,1.56,.64,1);}
+.splash-wordmark{opacity:0;transition:opacity .6s .4s;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="screen" id="screen-splash">
+  <div class="splash-glow"></div>
+  <svg width="80" height="80" viewBox="0 0 72 72" fill="none" style="position:relative;z-index:1;margin-bottom:16px;filter:drop-shadow(0 8px 40px rgba(62,207,170,.3))">
+    <rect width="72" height="72" rx="20" fill="#1A3560"/>
+    <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#2E5BA8" stroke-width="1.5"/>
+    <rect x="20" y="24" width="32" height="22" rx="7" fill="#0A1628"/>
+    <ellipse cx="29" cy="35" rx="5" ry="5" fill="#1A3560"/>
+    <ellipse cx="29" cy="35" rx="3" ry="3" fill="#3ECFAA"/>
+    <ellipse cx="29" cy="35" rx="1.2" ry="1.2" fill="#fff"/>
+    <ellipse cx="43" cy="35" rx="5" ry="5" fill="#1A3560"/>
+    <ellipse cx="43" cy="35" rx="3" ry="3" fill="#3ECFAA"/>
+    <ellipse cx="43" cy="35" rx="1.2" ry="1.2" fill="#fff"/>
+    <path d="M28 47 Q36 52 44 47" stroke="#3ECFAA" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <rect x="33" y="12" width="6" height="7" rx="2" fill="#2E5BA8"/>
+    <circle cx="36" cy="11" r="2.5" fill="#3ECFAA"/>
+    <rect x="6" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+    <rect x="58" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+  </svg>
+  <div class="splash-logo splash-wordmark" id="splash-wordmark">pill<em>O</em></div>
+  <div class="splash-tag" id="splash-slogan" style="transition:opacity 1s .8s;opacity:0;">"I'm here to keep you healthy."</div>
+  <div class="splash-loader">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen hidden" id="screen-onboard">
+  <div class="ob-wrap">
+    <div class="ob-slides" id="ob-slides">
+
+      <!-- Slide 1 -->
+      <div class="ob-slide">
+        <div class="ob-dots">
+          <div class="ob-dot active" id="od0"></div>
+          <div class="ob-dot" id="od1"></div>
+          <div class="ob-dot" id="od2"></div>
+        </div>
+        <div class="ob-mascot">
+          <svg width="100" height="100" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" rx="20" fill="#1A3560"/>
+            <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#2E5BA8" stroke-width="1.5"/>
+            <rect x="20" y="24" width="32" height="22" rx="7" fill="#0A1628"/>
+            <ellipse cx="29" cy="35" rx="5" ry="5" fill="#1A3560"/>
+            <ellipse cx="29" cy="35" rx="3.5" ry="3.5" fill="#3ECFAA"/>
+            <ellipse cx="29" cy="35" rx="1.2" ry="1.2" fill="#fff"/>
+            <ellipse cx="43" cy="35" rx="5" ry="5" fill="#1A3560"/>
+            <ellipse cx="43" cy="35" rx="3.5" ry="3.5" fill="#3ECFAA"/>
+            <ellipse cx="43" cy="35" rx="1.2" ry="1.2" fill="#fff"/>
+            <path d="M26 49 Q36 56 46 49" stroke="#3ECFAA" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <rect x="33" y="12" width="6" height="7" rx="2" fill="#2E5BA8"/>
+            <circle cx="36" cy="11" r="2.5" fill="#3ECFAA"/>
+            <rect x="6" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+            <rect x="58" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+          </svg>
+        </div>
+        <div class="ob-title">Meet <em>pillO</em> —<br>your health buddy</div>
+        <div class="ob-sub">pillO remembers your medication schedule so you never have to worry again. Smart alerts, a companion that cares.</div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="ob-slide">
+        <div class="ob-dots">
+          <div class="ob-dot done"></div>
+          <div class="ob-dot active"></div>
+          <div class="ob-dot"></div>
+        </div>
+        <div style="padding-top:8px;flex:1;">
+          <div class="ob-feature">
+            <div class="ob-feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <ellipse cx="12" cy="12" rx="8" ry="5" transform="rotate(-45 12 12)" fill="#0A2E25" stroke="#3ECFAA" stroke-width="1.5"/>
+                <line x1="7.5" y1="7.5" x2="16.5" y2="16.5" stroke="#3ECFAA" stroke-width="1.2"/>
+                <ellipse cx="9" cy="9" rx="3.8" ry="2.4" transform="rotate(-45 9 9)" fill="#3ECFAA" opacity=".6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ob-feature-title">Add your medications</div>
+              <div class="ob-feature-desc">Name, dose, time — done in 10 seconds</div>
+            </div>
+          </div>
+          <div class="ob-feature">
+            <div class="ob-feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="7" width="14" height="10" rx="4" fill="#0A1628" stroke="#3ECFAA" stroke-width="1.3"/>
+                <rect x="7" y="10" width="8" height="4" rx="2" fill="#071020"/>
+                <ellipse cx="9.5" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/>
+                <ellipse cx="14.5" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/>
+                <rect x="10.5" y="3" width="3" height="5" rx="1.5" fill="#2E5BA8"/>
+                <circle cx="12" cy="2.5" r="1.5" fill="#3ECFAA"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ob-feature-title">pillO reminds you</div>
+              <div class="ob-feature-desc">Persistent alerts — won't stop until you confirm</div>
+            </div>
+          </div>
+          <div class="ob-feature">
+            <div class="ob-feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="13" width="4" height="8" rx="1" fill="#3ECFAA" opacity=".5"/>
+                <rect x="10" y="8" width="4" height="13" rx="1" fill="#3ECFAA" opacity=".75"/>
+                <rect x="17" y="4" width="4" height="17" rx="1" fill="#3ECFAA"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ob-feature-title">Track your adherence</div>
+              <div class="ob-feature-desc">Weekly reports you can share with your doctor</div>
+            </div>
+          </div>
+          <div class="ob-feature">
+            <div class="ob-feature-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="8" cy="8" r="3" fill="#0A1628" stroke="#3ECFAA" stroke-width="1.2"/>
+                <circle cx="16" cy="8" r="2.5" fill="#0A1628" stroke="#2E5BA8" stroke-width="1.2"/>
+                <path d="M2 20 Q2 14 8 14 Q14 14 14 20" fill="#0A2E25" stroke="#3ECFAA" stroke-width="1"/>
+                <path d="M14 16 Q14 13 16 13 Q19 13 19 16 L19 20" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ob-feature-title">Care for your family</div>
+              <div class="ob-feature-desc">Manage medications for up to 5 people</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="ob-slide">
+        <div class="ob-dots">
+          <div class="ob-dot done"></div>
+          <div class="ob-dot done"></div>
+          <div class="ob-dot active"></div>
+        </div>
+        <div class="ob-mascot" style="margin-top:20px;">
+          <svg width="100" height="100" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" rx="20" fill="#1A3560"/>
+            <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#2E5BA8" stroke-width="1.5"/>
+            <rect x="20" y="24" width="32" height="22" rx="7" fill="#0A1628"/>
+            <ellipse cx="29" cy="35" rx="5" ry="5" fill="#1A3560"/>
+            <ellipse cx="29" cy="35" rx="4" ry="4" fill="#3ECFAA"/>
+            <ellipse cx="43" cy="35" rx="5" ry="5" fill="#1A3560"/>
+            <ellipse cx="43" cy="35" rx="4" ry="4" fill="#3ECFAA"/>
+            <path d="M24 49 Q36 57 48 49" stroke="#3ECFAA" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <circle cx="27" cy="32" r="1.3" fill="#AAFFEE"/>
+            <circle cx="41" cy="32" r="1.3" fill="#AAFFEE"/>
+            <rect x="33" y="12" width="6" height="7" rx="2" fill="#2E5BA8"/>
+            <circle cx="36" cy="11" r="2.5" fill="#3ECFAA"/>
+            <line x1="13" y1="18" x2="8" y2="12" stroke="#3ECFAA" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="7" cy="11" r="2.5" fill="#3ECFAA" opacity=".8"/>
+            <line x1="59" y1="18" x2="64" y2="12" stroke="#3ECFAA" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="65" cy="11" r="2.5" fill="#3ECFAA" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="ob-title" style="text-align:center;">pillO is ready<br>to take care<br>of <em>you</em></div>
+        <div class="ob-sub" style="text-align:center;margin-top:8px;">Create your free account to sync your data across all devices and never lose your history.</div>
+      </div>
+
+    </div>
+  </div>
+  <div class="ob-actions">
+    <button class="ob-btn-primary" id="ob-next-btn" onclick="obNext()">Continue →</button>
+    <button class="ob-btn-ghost" onclick="showLogin()">I already have an account</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen hidden" id="screen-login">
+  <div class="login-face">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="filter:drop-shadow(0 8px 32px rgba(62,207,170,.2))">
+      <rect width="72" height="72" rx="20" fill="#1A3560"/>
+      <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#2E5BA8" stroke-width="1.5"/>
+      <rect x="20" y="24" width="32" height="22" rx="7" fill="#0A1628"/>
+      <ellipse cx="29" cy="35" rx="3.5" ry="3.5" fill="#3ECFAA"/>
+      <ellipse cx="43" cy="35" rx="3.5" ry="3.5" fill="#3ECFAA"/>
+      <path d="M28 47 Q36 52 44 47" stroke="#3ECFAA" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <rect x="33" y="12" width="6" height="7" rx="2" fill="#2E5BA8"/>
+      <circle cx="36" cy="11" r="2.5" fill="#3ECFAA"/>
+    </svg>
+  </div>
+  <div class="login-title">pill<em>O</em> is waiting</div>
+  <div class="login-sub">Sign in to sync your data across all your devices</div>
+  <div class="login-btns">
+    <button class="login-btn login-btn-google" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="login-divider"><div class="login-div-line"></div><span class="login-div-txt">or</span><div class="login-div-line"></div></div>
+    <button class="login-btn login-btn-email" onclick="showEmailLogin()">Continue with email</button>
+  </div>
+  <div class="login-terms">By continuing, you agree to pillO's <a>Terms of Service</a> and <a>Privacy Policy</a>. Your health data is encrypted and never sold.</div>
+</div>
+
+<!-- EMAIL LOGIN (sub-screen) -->
+<div class="screen hidden" id="screen-email">
+  <div style="padding:env(safe-area-inset-top,44px) 24px 0;flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:24px;font-weight:900;letter-spacing:-.5px;margin-bottom:6px;">Sign in with email</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:28px;">Enter your email to continue</div>
+    <div class="form-g">
+      <label class="form-l">Email</label>
+      <input class="form-i" type="email" id="email-input" placeholder="you@example.com">
+    </div>
+    <div class="form-g" id="password-group">
+      <label class="form-l">Password</label>
+      <input class="form-i" type="password" id="password-input" placeholder="Min. 6 characters">
+    </div>
+    <button class="btn-save" onclick="loginEmail()">Continue →</button>
+    <button class="btn-cancel" onclick="showLogin()">← Back</button>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted);cursor:pointer;" onclick="toggleAuthMode()">
+      <span id="auth-toggle-txt">Don't have an account? Sign up</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ PROFILE SETUP ═══════════════ -->
+<div class="screen hidden" id="screen-profile">
+  <div style="padding:env(safe-area-inset-top,32px) 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="font-size:17px;font-weight:900;letter-spacing:-.8px;">pill<em style="font-style:normal;color:#3ECFAA">O</em></div>
+    <div style="font-size:11px;color:#3A5878;cursor:pointer;" onclick="skipProfile()">Skip for now</div>
+  </div>
+  <div style="padding:12px 24px 0;flex-shrink:0;" id="prof-prog-wrap">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+      <div style="font-size:10px;font-weight:700;color:#7B9EC4;" id="pp-step-lbl">Step 1 of 5</div>
+      <div style="font-size:10px;color:#3A5878;" id="pp-step-pct">20%</div>
+    </div>
+    <div style="height:3px;background:#1E3A5F;border-radius:2px;overflow:hidden;">
+      <div id="pp-prog-fill" style="height:100%;background:#3ECFAA;border-radius:2px;width:20%;transition:width .4s;"></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;position:relative;" id="pp-pages">
+    <!-- Step 1: Name -->
+    <div style="position:absolute;inset:0;padding:24px;overflow-y:auto;" id="pp-page-1" class="pp-page active">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3ECFAA;margin-bottom:7px;">Nice to meet you!</div>
+      <div style="font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px;">What should pillO<br>call you?</div>
+      <div style="font-size:12px;color:#7B9EC4;margin-bottom:18px;">pillO will use your name every day.</div>
+      <input id="pp-name-inp" type="text" placeholder="Your first name" maxlength="28"
+        style="width:100%;padding:15px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:13px;color:#F0F6FF;font-size:18px;font-weight:700;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:14px;"
+        oninput="ppVal()" onfocus="this.style.borderColor='#3ECFAA'" onblur="this.style.borderColor='#1E3A5F'">
+      <div style="display:flex;align-items:flex-start;gap:9px;background:rgba(62,207,170,.04);border:1px solid rgba(62,207,170,.1);border-radius:11px;padding:11px 13px;">
+        <div style="font-size:10px;color:#7B9EC4;line-height:1.55;"><strong style="color:#3ECFAA">Your data is safe.</strong> pillO only collects anonymous usage data.</div>
+      </div>
+    </div>
+    <!-- Step 2: Age -->
+    <div style="position:absolute;inset:0;padding:24px;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s;" id="pp-page-2" class="pp-page">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3ECFAA;margin-bottom:7px;">About you</div>
+      <div style="font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px;">How old are you?</div>
+      <div style="font-size:12px;color:#7B9EC4;margin-bottom:18px;">Helps pillO understand your health context.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px;" id="pp-age-grid">
+        <div class="pp-age-opt" onclick="ppSelAge(this,'13-17')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">13–17</div><div style="font-size:9px;color:#7B9EC4;">Teen</div></div>
+        <div class="pp-age-opt" onclick="ppSelAge(this,'18-24')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">18–24</div><div style="font-size:9px;color:#7B9EC4;">Young adult</div></div>
+        <div class="pp-age-opt" onclick="ppSelAge(this,'25-34')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">25–34</div><div style="font-size:9px;color:#7B9EC4;">Adult</div></div>
+        <div class="pp-age-opt" onclick="ppSelAge(this,'35-44')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">35–44</div><div style="font-size:9px;color:#7B9EC4;">Adult</div></div>
+        <div class="pp-age-opt" onclick="ppSelAge(this,'45-59')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">45–59</div><div style="font-size:9px;color:#7B9EC4;">Adult</div></div>
+        <div class="pp-age-opt" onclick="ppSelAge(this,'60+')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:12px;padding:13px 6px;text-align:center;cursor:pointer;">
+          <div style="font-size:16px;font-weight:900;">60+</div><div style="font-size:9px;color:#7B9EC4;">Senior</div></div>
+      </div>
+      <div style="font-size:10px;color:#3A5878;">Age range only — never your exact birthdate.</div>
+    </div>
+    <!-- Step 3: Role -->
+    <div style="position:absolute;inset:0;padding:24px;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s;" id="pp-page-3" class="pp-page">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3ECFAA;margin-bottom:7px;">Your role</div>
+      <div style="font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px;">Who is pillO for?</div>
+      <div style="font-size:12px;color:#7B9EC4;margin-bottom:18px;">This shapes how pillO talks to you.</div>
+      <div style="display:flex;flex-direction:column;gap:9px;" id="pp-role-opts">
+        <div class="pp-role-opt" onclick="ppSelRole(this,'myself')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:13px 14px;cursor:pointer;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#1A2F50;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><circle cx="12" cy="9" r="4" fill="#0A1628" stroke="#3ECFAA" stroke-width="1.2"/><ellipse cx="10.5" cy="9" rx="1.5" ry="1.5" fill="#3ECFAA"/><ellipse cx="13.5" cy="9" rx="1.5" ry="1.5" fill="#3ECFAA"/><path d="M5 20 Q5 15 12 15 Q19 15 19 20" fill="#0A2E25" stroke="#3ECFAA" stroke-width="1"/></svg>
+          </div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">For myself</div><div style="font-size:10px;color:#7B9EC4;">Managing my own medication</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-role-opt" onclick="ppSelRole(this,'child')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:13px 14px;cursor:pointer;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#1A2F50;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><circle cx="8" cy="9" r="3" fill="#0A1628" stroke="#3ECFAA" stroke-width="1.2"/><circle cx="16" cy="9" r="2.5" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><path d="M3 19 Q3 14 8 14 Q11 14 12 17" fill="#0A2E25" stroke="#3ECFAA" stroke-width="1"/><path d="M13 17 Q14 14 16 14 Q20 14 20 18" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/></svg>
+          </div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">For my child</div><div style="font-size:10px;color:#7B9EC4;">Managing my child's medication</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-role-opt" onclick="ppSelRole(this,'parent')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:13px 14px;cursor:pointer;">
+          <div style="width:34px;height:34px;border-radius:9px;background:#1A2F50;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><circle cx="12" cy="8" r="3.5" fill="#0A1628" stroke="#F5A623" stroke-width="1.2"/><ellipse cx="10.5" cy="8" rx="1.3" ry="1.3" fill="#F5A623"/><ellipse cx="13.5" cy="8" rx="1.3" ry="1.3" fill="#F5A623"/><path d="M5 20 Q5 15 12 15 Q19 15 19 20" fill="#2E1A00" stroke="#F5A623" stroke-width="1"/></svg>
+          </div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">For a parent or elder</div><div style="font-size:10px;color:#7B9EC4;">Caregiver for a family member</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Step 4: Motivation -->
+    <div style="position:absolute;inset:0;padding:24px;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s;" id="pp-page-4" class="pp-page">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3ECFAA;margin-bottom:7px;">Your goal</div>
+      <div style="font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px;">What brings you to pillO?</div>
+      <div style="font-size:12px;color:#7B9EC4;margin-bottom:18px;">Select all that apply.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="pp-motiv-opts">
+        <div class="pp-motiv-opt" onclick="ppTogMotiv(this,'vitamins')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:12px 14px;cursor:pointer;">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Vitamins &amp; supplements</div><div style="font-size:10px;color:#7B9EC4;">Vitamins, omega-3, probiotics…</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-motiv-opt" onclick="ppTogMotiv(this,'contraceptive')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:12px 14px;cursor:pointer;">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Contraceptive pill</div><div style="font-size:10px;color:#7B9EC4;">Daily oral contraceptives</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-motiv-opt" onclick="ppTogMotiv(this,'chronic')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:12px 14px;cursor:pointer;">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Ongoing treatment</div><div style="font-size:10px;color:#7B9EC4;">Long-term prescription medication</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-motiv-opt" onclick="ppTogMotiv(this,'short')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:12px 14px;cursor:pointer;">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Short-term treatment</div><div style="font-size:10px;color:#7B9EC4;">Antibiotics, recovery, temporary</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+        <div class="pp-motiv-opt" onclick="ppTogMotiv(this,'family')" style="display:flex;align-items:center;gap:12px;background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:14px;padding:12px 14px;cursor:pointer;">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Family care</div><div style="font-size:10px;color:#7B9EC4;">Helping someone else stay on track</div></div>
+          <div style="width:19px;height:19px;border-radius:50%;border:1.5px solid #1E3A5F;" class="pp-chk"></div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#3A5878;margin-top:12px;">Not medical info — just context for personalization.</div>
+    </div>
+    <!-- Step 5: Reminder style -->
+    <div style="position:absolute;inset:0;padding:24px;overflow-y:auto;opacity:0;transform:translateX(28px);pointer-events:none;transition:all .35s;" id="pp-page-5" class="pp-page">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3ECFAA;margin-bottom:7px;">Almost there!</div>
+      <div style="font-size:21px;font-weight:900;letter-spacing:-.4px;margin-bottom:6px;">How should pillO remind you?</div>
+      <div style="font-size:12px;color:#7B9EC4;margin-bottom:18px;">You can change this anytime in Settings.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;" id="pp-rem-grid">
+        <div class="pp-rem-opt" onclick="ppSelRem(this,'gentle')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;">
+          <div style="font-size:21px;margin-bottom:6px;">😊</div>
+          <div style="font-size:12px;font-weight:700;">Gentle</div>
+          <div style="font-size:9px;color:#7B9EC4;margin-top:2px;">Soft reminders</div>
+        </div>
+        <div class="pp-rem-opt" onclick="ppSelRem(this,'persistent')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;">
+          <div style="font-size:21px;margin-bottom:6px;">⚡</div>
+          <div style="font-size:12px;font-weight:700;">Persistent</div>
+          <div style="font-size:9px;color:#7B9EC4;margin-top:2px;">Won't stop until confirmed</div>
+        </div>
+        <div class="pp-rem-opt" onclick="ppSelRem(this,'quiet')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;">
+          <div style="font-size:21px;margin-bottom:6px;">🔕</div>
+          <div style="font-size:12px;font-weight:700;">Quiet</div>
+          <div style="font-size:9px;color:#7B9EC4;margin-top:2px;">Silent notifications only</div>
+        </div>
+        <div class="pp-rem-opt" onclick="ppSelRem(this,'strict')" style="background:#0F1F3D;border:1.5px solid #1E3A5F;border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;">
+          <div style="font-size:21px;margin-bottom:6px;">🚨</div>
+          <div style="font-size:12px;font-weight:700;">Strict</div>
+          <div style="font-size:9px;color:#7B9EC4;margin-top:2px;">pillO won't let you forget</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#3A5878;">pillO complies with GDPR &amp; CCPA. Delete all data anytime.</div>
+    </div>
+  </div>
+  <div style="padding:14px 24px calc(24px + env(safe-area-inset-bottom,0));flex-shrink:0;">
+    <button id="pp-main-btn" onclick="ppNext()" disabled
+      style="width:100%;padding:14px;background:#3ECFAA;color:#04160F;border-radius:16px;font-size:15px;font-weight:900;border:none;font-family:'DM Sans',sans-serif;cursor:pointer;opacity:.35;transition:opacity .2s;">
+      Continue →
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="screen hidden" id="screen-app">
+  <div class="app-hdr">
+    <div class="app-hdr-inner">
+      <div>
+        <div class="app-logo">pill<em>O</em></div>
+        <div class="app-date" id="hdr-date"></div>
+      </div>
+      <div class="hdr-right">
+        <div class="app-fab" style="position:static;width:38px;height:38px;font-size:20px;box-shadow:none;" onclick="openModal()" id="fab-hdr">+</div>
+        <div class="hdr-avatar" id="hdr-avatar" onclick="showPage('settings')">?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-tabs">
+    <div class="app-tab active" id="tab-today" onclick="showPage('today')">Today</div>
+    <div class="app-tab" id="tab-meds" onclick="showPage('meds')">My meds</div>
+    <div class="app-tab" id="tab-history" onclick="showPage('history')">History</div>
+    <div class="app-tab" id="tab-settings" onclick="showPage('settings')">Profile</div>
+  </div>
+
+  <div class="app-pages">
+
+    <!-- TODAY -->
+    <div class="app-page active" id="page-today">
+      <div style="height:12px"></div>
+      <div class="pillo-widget" id="pillo-widget">
+        <div class="pillo-face-wrap">
+          <svg id="pillo-svg" width="60" height="60" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" rx="20" fill="#1A3560"/>
+            <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#2E5BA8" stroke-width="1.5"/>
+            <rect x="20" y="24" width="32" height="22" rx="7" fill="#0A1628"/>
+            <ellipse cx="29" cy="35" rx="5" ry="5" fill="#1A3560" id="el-bg"/>
+            <ellipse cx="29" cy="35" rx="3" ry="3" fill="#3ECFAA" id="el"/>
+            <ellipse cx="29" cy="35" rx="1.2" ry="1.2" fill="#fff" id="el-s"/>
+            <ellipse cx="43" cy="35" rx="5" ry="5" fill="#1A3560" id="er-bg"/>
+            <ellipse cx="43" cy="35" rx="3" ry="3" fill="#3ECFAA" id="er"/>
+            <ellipse cx="43" cy="35" rx="1.2" ry="1.2" fill="#fff" id="er-s"/>
+            <path d="M28 47 Q36 52 44 47" stroke="#3ECFAA" stroke-width="1.8" fill="none" stroke-linecap="round" id="mouth"/>
+            <rect x="33" y="12" width="6" height="7" rx="2" fill="#2E5BA8" id="ant-base"/>
+            <circle cx="36" cy="11" r="2.5" fill="#3ECFAA" id="ant-tip"/>
+            <rect x="6" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+            <rect x="58" y="28" width="8" height="5" rx="2.5" fill="#2E5BA8"/>
+            <rect x="20" y="54" width="8" height="12" rx="3" fill="#2E5BA8"/>
+            <rect x="44" y="54" width="8" height="12" rx="3" fill="#2E5BA8"/>
+          </svg>
+        </div>
+        <div class="pillo-speech">
+          <div class="pillo-mood" id="pillo-mood">Ready</div>
+          <div class="pillo-msg" id="pillo-msg">Add your first medication with the + button!</div>
+        </div>
+      </div>
+
+      <div style="padding:0 0 4px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;" id="v3-xp-lbl">Lvl 1 · pillO</div>
+          <div style="font-size:9px;font-weight:700;color:var(--green);" id="v3-xp-val">0 / 100 XP</div>
+        </div>
+        <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;">
+          <div id="v3-xp-bar" style="height:100%;background:var(--green);border-radius:2px;width:0%;transition:width .6s;"></div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-n" style="color:var(--green)" id="st-taken">0</div><div class="stat-l">Taken</div></div>
+        <div class="stat-card"><div class="stat-n" style="color:var(--amber)" id="st-pending">0</div><div class="stat-l">Pending</div></div>
+        <div class="stat-card"><div class="stat-n" style="color:var(--red)" id="st-missed">0</div><div class="stat-l">Missed</div></div>
+      </div>
+
+      <div class="sec-hdr"><div class="sec-title">Today's doses</div></div>
+      <div id="med-list"></div>
+    </div>
+
+    <!-- MY MEDS -->
+    <div class="app-page" id="page-meds">
+      <div style="height:12px"></div>
+      <div class="sec-hdr"><div class="sec-title">All medications</div></div>
+      <div id="meds-all"></div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="app-page" id="page-history">
+      <div style="height:12px"></div>
+      <div class="ring-card">
+        <svg width="68" height="68" viewBox="0 0 72 72" style="flex-shrink:0">
+          <circle cx="36" cy="36" r="28" fill="none" stroke="#1E3A5F" stroke-width="8"/>
+          <circle cx="36" cy="36" r="28" fill="none" stroke="#3ECFAA" stroke-width="8"
+            stroke-dasharray="175.9" id="ring-circle" stroke-dashoffset="175.9"
+            stroke-linecap="round" transform="rotate(-90 36 36)"/>
+        </svg>
+        <div>
+          <div class="ring-pct-txt" id="ring-pct">0%</div>
+          <div class="ring-sub-txt" id="ring-sub">Start taking your meds to see your progress.</div>
+        </div>
+      </div>
+      <div class="sec-hdr" style="margin-bottom:10px;"><div class="sec-title">Last 7 days</div></div>
+      <div class="week-dots" id="week-dots"></div>
+      <div class="sec-hdr" style="margin-top:8px;"><div class="sec-title">Detailed log</div></div>
+      <div id="log-list"></div>
+    </div>
+
+    <!-- SETTINGS/PROFILE -->
+    <div class="app-page" id="page-settings">
+      <div style="height:12px"></div>
+
+      <div class="profile-hdr">
+        <div class="p-avatar" id="profile-avatar">?</div>
+        <div>
+          <div class="p-name" id="profile-name">Loading...</div>
+          <div class="p-email" id="profile-email"></div>
+          <div class="p-plan">Free plan</div>
+        </div>
+        <button onclick="signOut()" style="margin-left:auto;background:transparent;border:none;color:var(--faint);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign out</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="srow" onclick="toggleS('notif')">
+          <div class="srow-l">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><rect x="5" y="8" width="14" height="10" rx="4" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><ellipse cx="9" cy="13" rx="1.5" ry="1.5" fill="#3ECFAA"/><ellipse cx="15" cy="13" rx="1.5" ry="1.5" fill="#3ECFAA"/><rect x="10.5" y="3" width="3" height="6" rx="1.5" fill="#2E5BA8"/><circle cx="12" cy="2.5" r="1.5" fill="#3ECFAA"/></svg>
+            Notifications
+          </div>
+          <div class="toggle on" id="tog-notif"></div>
+        </div>
+        <div class="srow" onclick="toggleS('vibrate')">
+          <div class="srow-l">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><rect x="7" y="6" width="10" height="12" rx="3" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><ellipse cx="10" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/><ellipse cx="14" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/><line x1="4" y1="9" x2="2" y2="9" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/><line x1="4" y1="12" x2="2" y2="12" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/><line x1="4" y1="15" x2="2" y2="15" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/><line x1="20" y1="9" x2="22" y2="9" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/><line x1="20" y1="12" x2="22" y2="12" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/><line x1="20" y1="15" x2="22" y2="15" stroke="#3ECFAA" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Vibration
+          </div>
+          <div class="toggle on" id="tog-vibrate"></div>
+        </div>
+        <div class="srow" onclick="toggleS('sound')">
+          <div class="srow-l">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><rect x="5" y="7" width="10" height="10" rx="3" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><ellipse cx="8.5" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/><ellipse cx="11.5" cy="12" rx="1.3" ry="1.3" fill="#3ECFAA"/><path d="M17 10 Q20 12 17 14" stroke="#3ECFAA" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+            Sound
+          </div>
+          <div class="toggle on" id="tog-sound"></div>
+        </div>
+        <div class="srow" onclick="cycleSnooze()">
+          <div class="srow-l">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><circle cx="12" cy="12" r="7" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><line x1="12" y1="12" x2="12" y2="8" stroke="#3ECFAA" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="12" x2="15" y2="14" stroke="#3ECFAA" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="1" fill="#3ECFAA"/></svg>
+            Snooze interval
+          </div>
+          <div class="srow-r" id="snooze-lbl">15 min</div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div class="srow" onclick="exportCSV()">
+          <div class="srow-l">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><rect x="5" y="4" width="12" height="15" rx="2" fill="#0A1628" stroke="#2E5BA8" stroke-width="1"/><line x1="8" y1="9" x2="14" y2="9" stroke="#2E5BA8" stroke-width="1" stroke-linecap="round"/><line x1="8" y1="12" x2="14" y2="12" stroke="#2E5BA8" stroke-width="1" stroke-linecap="round"/><ellipse cx="9.5" cy="15" rx="1" ry="1" fill="#3ECFAA"/><ellipse cx="13.5" cy="15" rx="1" ry="1" fill="#3ECFAA"/></svg>
+            Export history
+          </div>
+          <div class="srow-r">CSV</div>
+        </div>
+        <div class="srow" onclick="clearAll()">
+          <div class="srow-l" style="color:var(--red)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#0F1F3D"/><rect x="5" y="8" width="10" height="9" rx="3" fill="#0A1628" stroke="#3A5878" stroke-width="1"/><line x1="7" y1="12" x2="10" y2="12" stroke="#3A5878" stroke-width="1.2" stroke-linecap="round"/><line x1="12" y1="12" x2="15" y2="12" stroke="#3A5878" stroke-width="1.2" stroke-linecap="round"/><line x1="16" y1="12" x2="22" y2="12" stroke="#E84545" stroke-width="1.3" stroke-linecap="round"/><polyline points="19,9 22,12 19,15" stroke="#E84545" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Clear all data
+          </div>
+          <div class="srow-r">Reset</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:16px 0 8px;font-size:10px;color:var(--faint);">pillO v1.0 · Your routine. Never missed.</div>
+    </div>
+
+  </div>
+
+  <div class="app-bnav">
+    <div class="bni active" id="bni-today" onclick="showPage('today')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Today
+    </div>
+    <div class="bni" id="bni-meds" onclick="showPage('meds')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="7" cy="12" rx="5" ry="8" transform="rotate(-45 7 12)"/><line x1="7" y1="12" x2="17" y2="12" transform="rotate(-45 12 12)"/></svg>
+      Meds
+    </div>
+    <div class="bni" id="bni-history" onclick="showPage('history')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      History
+    </div>
+    <div class="bni" id="bni-settings" onclick="showPage('settings')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Profile
+    </div>
+  </div>
+</div>
+
+<!-- ADD MED MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">New medication</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-g">
+      <label class="form-l">Medication name</label>
+      <input class="form-i" id="f-name" placeholder="e.g. Metformin 500mg" autocomplete="off">
+    </div>
+    <div class="form-g">
+      <label class="form-l">Dose</label>
+      <input class="form-i" id="f-dose" placeholder="e.g. 1 tablet, 5ml, 2 capsules">
+    </div>
+    <div class="form-g">
+      <label class="form-l">Time</label>
+      <input class="form-i" type="time" id="f-time" value="08:00">
+    </div>
+    <div class="form-g">
+      <label class="form-l">Frequency</label>
+      <div class="freq-grid">
+        <div class="freq-opt sel" data-v="daily" onclick="selFreq(this)">Daily</div>
+        <div class="freq-opt" data-v="every8h" onclick="selFreq(this)">Every 8h</div>
+        <div class="freq-opt" data-v="every12h" onclick="selFreq(this)">Every 12h</div>
+        <div class="freq-opt" data-v="weekly" onclick="selFreq(this)">Weekly</div>
+        <div class="freq-opt" data-v="specific" onclick="selFreq(this)">Specific days</div>
+        <div class="freq-opt" data-v="once" onclick="selFreq(this)">Once</div>
+      </div>
+      <div id="days-row" style="display:none">
+        <div style="font-size:11px;color:var(--muted);margin:10px 0 6px;">Select days:</div>
+        <div class="days-grid">
+          <div class="day-opt" data-d="0" onclick="toggleDay(this)">M</div>
+          <div class="day-opt" data-d="1" onclick="toggleDay(this)">T</div>
+          <div class="day-opt" data-d="2" onclick="toggleDay(this)">W</div>
+          <div class="day-opt" data-d="3" onclick="toggleDay(this)">T</div>
+          <div class="day-opt" data-d="4" onclick="toggleDay(this)">F</div>
+          <div class="day-opt" data-d="5" onclick="toggleDay(this)">S</div>
+          <div class="day-opt" data-d="6" onclick="toggleDay(this)">S</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-g">
+      <label class="form-l">Instructions (optional)</label>
+      <input class="form-i" id="f-notes" placeholder="e.g. With food, with plenty of water">
+    </div>
+    <button class="btn-save" onclick="saveMed()">Save medication</button>
+    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- ALARM -->
+<div class="alarm-overlay" id="alarm-overlay">
+  <div class="alarm-sheet">
+    <div class="alarm-handle"></div>
+    <div class="alarm-face">
+      <svg id="alarm-face-svg" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <rect width="72" height="72" rx="20" fill="#1A0808"/>
+        <rect x="14" y="17" width="44" height="36" rx="11" fill="#0A1628" stroke="#E84545" stroke-width="2"/>
+        <rect x="20" y="23" width="32" height="22" rx="7" fill="#071020"/>
+        <ellipse cx="29" cy="34" rx="5" ry="5" fill="#1A0808"/>
+        <ellipse cx="29" cy="34" rx="3.5" ry="3.5" fill="#E84545"/>
+        <ellipse cx="29" cy="34" rx="1.3" ry="1.3" fill="#fff"/>
+        <ellipse cx="43" cy="34" rx="5" ry="5" fill="#1A0808"/>
+        <ellipse cx="43" cy="34" rx="3.5" ry="3.5" fill="#E84545"/>
+        <ellipse cx="43" cy="34" rx="1.3" ry="1.3" fill="#fff"/>
+        <line x1="22" y1="24" x2="32" y2="27.5" stroke="#E84545" stroke-width="2" stroke-linecap="round"/>
+        <line x1="40" y1="27.5" x2="50" y2="24" stroke="#E84545" stroke-width="2" stroke-linecap="round"/>
+        <path d="M26 46 Q36 42 46 46" stroke="#E84545" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <rect x="33" y="11" width="6" height="7" rx="2" fill="#E84545"/>
+        <circle cx="36" cy="10" r="2.8" fill="#FF6B6B"/>
+        <rect x="4" y="27" width="10" height="6" rx="3" fill="#E84545"/>
+        <rect x="58" y="27" width="10" height="6" rx="3" fill="#E84545"/>
+        <line x1="4" y1="25" x2="9" y2="20" stroke="#E84545" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="68" y1="25" x2="63" y2="20" stroke="#E84545" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="alarm-ttl">pillO is calling you!</div>
+    <div class="alarm-med-name" id="alarm-med">—</div>
+    <div class="alarm-dose" id="alarm-dose">—</div>
+    <div class="alarm-count" id="alarm-count"></div>
+    <button class="alarm-confirm" onclick="confirmAlarm()">✓ I took it</button>
+    <button class="alarm-snooze" onclick="snoozeAlarm()" id="snooze-btn">Remind me in 15 minutes</button>
+    <button class="alarm-skip" onclick="skipAlarm()">Not available — skip</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── FIREBASE CONFIG ────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyB0QVMULUFGzndtDvENfeE97DHozIvaoWU",
+  authDomain: "pillo-app-eaf4d.firebaseapp.com",
+  projectId: "pillo-app-eaf4d",
+  storageBucket: "pillo-app-eaf4d.firebasestorage.app",
+  messagingSenderId: "1021933911940",
+  appId: "1:1021933911940:web:5094ad3d4953e38ff867d1",
+  measurementId: "G-ZG5SQ9ZV07"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ── STATE ──────────────────────────────────────────────────────────────
+let currentUser = null;
+let meds = [], logs = [];
+let settings = {notif:true,vibrate:true,sound:true,snooze:15};
+let currentAlarm = null, alarmInterval = null, alarmCount = 0;
+let obSlide = 0;
+let isSignUp = false;
+
+// ── SPLASH → ONBOARDING ───────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const p = document.getElementById('splash-pillo');
+    if(p) { p.style.opacity='1'; p.style.transform='scale(1)'; }
+    const w = document.querySelector('.splash-wordmark');
+    if(w) w.style.opacity='1';
+    const s = document.querySelector('.splash-slogan');
+    if(s) setTimeout(()=>s.classList.add('show'), 600);
+    setTimeout(() => playBrandSound(), 500);
+  }, 150);
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      initApp();
+    } else {
+      setTimeout(() => {
+        // Check if first time
+        if (!localStorage.getItem('po_seen')) {
+          showScreen('onboard');
+        } else {
+          showScreen('login');
+        }
+      }, 2200);
+    }
+  });
+});
+
+// ── SCREEN NAVIGATION ─────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('screen-'+id).classList.remove('hidden');
+}
+
+// ── ONBOARDING ────────────────────────────────────────────────────────
+function obNext() {
+  if (obSlide < 2) {
+    obSlide++;
+    document.getElementById('ob-slides').style.transform = `translateX(-${obSlide * 100}%)`;
+    if (obSlide === 2) {
+      document.getElementById('ob-next-btn').textContent = 'Create free account →';
+    }
+  } else {
+    localStorage.setItem('po_seen','1');
+    showScreen('login');
+  }
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────
+function showLogin() { showScreen('login'); }
+function showEmailLogin() { showScreen('email'); }
+
+function toggleAuthMode() {
+  isSignUp = !isSignUp;
+  document.getElementById('auth-toggle-txt').textContent = isSignUp
+    ? 'Already have an account? Sign in'
+    : "Don't have an account? Sign up";
+}
+
+async function loginGoogle() {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch(e) {
+    showToast('Google login failed. Try email.');
+  }
+}
+
+async function loginEmail() {
+  const email = document.getElementById('email-input').value.trim();
+  const pass  = document.getElementById('password-input').value;
+  if (!email || !pass) { showToast('Enter email and password'); return; }
+  try {
+    if (isSignUp) {
+      await auth.createUserWithEmailAndPassword(email, pass);
+    } else {
+      await auth.signInWithEmailAndPassword(email, pass);
+    }
+  } catch(e) {
+    const msg = e.code === 'auth/user-not-found' ? 'Account not found. Sign up?' :
+                e.code === 'auth/wrong-password' ? 'Wrong password' :
+                e.code === 'auth/email-already-in-use' ? 'Email already registered' :
+                e.message;
+    showToast(msg);
+  }
+}
+
+async function signOut() {
+  if (!confirm('Sign out of pillO?')) return;
+  await auth.signOut();
+  currentUser = null;
+  meds = []; logs = [];
+  showScreen('login');
+}
+
+// ── INIT APP ───────────────────────────────────────────────────────────
+async function initApp() {
+  showScreen('app');
+  setHeaderDate();
+  renderSettings();
+  updateUserUI();
+  await loadData();
+  renderToday();
+  requestNotifPerm();
+  setInterval(() => { setHeaderDate(); renderToday(); checkAlarms(); }, 60000);
+  setTimeout(checkAlarms, 1000);
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const name  = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+  const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('hdr-avatar').innerHTML = currentUser.photoURL
+    ? `<img src="${currentUser.photoURL}" alt="">`
+    : initials;
+  document.getElementById('profile-avatar').innerHTML = currentUser.photoURL
+    ? `<img src="${currentUser.photoURL}" alt="">`
+    : initials;
+  document.getElementById('profile-name').textContent = currentUser.displayName || name;
+  document.getElementById('profile-email').textContent = currentUser.email || '';
+}
+
+// ── FIRESTORE DATA ─────────────────────────────────────────────────────
+async function loadData() {
+  if (!currentUser) return;
+  try {
+    const medsSnap = await db.collection('users').doc(currentUser.uid).collection('meds').get();
+    meds = medsSnap.docs.map(d => ({id:d.id,...d.data()}));
+    const logsSnap = await db.collection('users').doc(currentUser.uid).collection('logs')
+      .orderBy('time','desc').limit(100).get();
+    logs = logsSnap.docs.map(d => ({id:d.id,...d.data()}));
+    const cfgDoc = await db.collection('users').doc(currentUser.uid).get();
+    if (cfgDoc.exists && cfgDoc.data().settings) {
+      settings = {...settings,...cfgDoc.data().settings};
+    }
+  } catch(e) { console.log('Load error:', e); }
+}
+
+async function saveMedToDb(med) {
+  if (!currentUser) return;
+  const {id,...data} = med;
+  await db.collection('users').doc(currentUser.uid).collection('meds').doc(id).set(data);
+}
+
+async function deletemedFromDb(id) {
+  if (!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).collection('meds').doc(id).delete();
+}
+
+async function saveLogToDb(log) {
+  if (!currentUser) return;
+  const {id,...data} = log;
+  await db.collection('users').doc(currentUser.uid).collection('logs').doc(id).set(data);
+}
+
+async function saveSettingsToDb() {
+  if (!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).set({settings},{merge:true});
+}
+
+// ── DATE ───────────────────────────────────────────────────────────────
+function setHeaderDate() {
+  const n = new Date();
+  const name = currentUser?.displayName?.split(' ')[0];
+  const d = n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('hdr-date').textContent = name ? `${d} · Hi, ${name}!` : d;
+}
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── PAGE NAV ───────────────────────────────────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.app-page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.app-tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.bni').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('tab-'+p)?.classList.add('active');
+  document.getElementById('bni-'+p)?.classList.add('active');
+  document.getElementById('fab-hdr').style.display = (p==='today'||p==='meds') ? 'flex' : 'none';
+  if (p==='history') renderHistory();
+  if (p==='meds') renderAllMeds();
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────
+function openModal(editId) {
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('modal-title').textContent = editId ? 'Edit medication' : 'New medication';
+  document.getElementById('edit-id').value = editId||'';
+  if (editId) {
+    const m = meds.find(x=>x.id===editId);
+    if (m) {
+      document.getElementById('f-name').value  = m.name;
+      document.getElementById('f-dose').value  = m.dose;
+      document.getElementById('f-time').value  = m.time;
+      document.getElementById('f-notes').value = m.notes||'';
+      document.querySelectorAll('.freq-opt').forEach(o => o.classList.toggle('sel', o.dataset.v===m.freq));
+      document.getElementById('days-row').style.display = m.freq==='specific' ? 'block' : 'none';
+      document.querySelectorAll('.day-opt').forEach(d => d.classList.toggle('sel', (m.days||[]).includes(+d.dataset.d)));
+    }
+  } else {
+    document.getElementById('f-name').value = document.getElementById('f-dose').value = document.getElementById('f-notes').value = '';
+    document.getElementById('f-time').value = '08:00';
+    document.querySelectorAll('.freq-opt').forEach((o,i) => o.classList.toggle('sel', i===0));
+    document.getElementById('days-row').style.display = 'none';
+    document.querySelectorAll('.day-opt').forEach(d => d.classList.remove('sel'));
+  }
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+function selFreq(el) {
+  document.querySelectorAll('.freq-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('days-row').style.display = el.dataset.v==='specific' ? 'block' : 'none';
+}
+function toggleDay(el) { el.classList.toggle('sel'); }
+
+async function saveMed() {
+  const name  = document.getElementById('f-name').value.trim();
+  const dose  = document.getElementById('f-dose').value.trim();
+  const time  = document.getElementById('f-time').value;
+  const freq  = document.querySelector('.freq-opt.sel')?.dataset.v||'daily';
+  const notes = document.getElementById('f-notes').value.trim();
+  const days  = [...document.querySelectorAll('.day-opt.sel')].map(d=>+d.dataset.d);
+  const editId= document.getElementById('edit-id').value;
+  if (!name||!dose||!time) { showToast('Please fill name, dose and time'); return; }
+
+  if (editId) {
+    const i = meds.findIndex(m=>m.id===editId);
+    if (i>-1) { meds[i]={...meds[i],name,dose,time,freq,notes,days}; await saveMedToDb(meds[i]); }
+    showToast('Medication updated ✓');
+  } else {
+    const med = {id:Date.now().toString(),name,dose,time,freq,notes,days,active:true,createdAt:new Date().toISOString()};
+    meds.push(med);
+    await saveMedToDb(med);
+    showToast('Medication added 💊');
+  }
+  closeModal(); renderToday(); renderAllMeds(); updatePillo();
+}
+
+// ── STATUS LOGIC ───────────────────────────────────────────────────────
+function isDueToday(m) {
+  if (!m.active) return false;
+  const dow = (new Date().getDay()+6)%7;
+  if (['daily','every8h','every12h'].includes(m.freq)) return true;
+  if (m.freq==='weekly'||m.freq==='specific') return (m.days||[]).includes(dow);
+  if (m.freq==='once') return !logs.find(l=>l.medId===m.id&&l.date===todayKey()&&l.status==='taken');
+  return true;
+}
+
+function getSlots(m) {
+  if (!isDueToday(m)) return [];
+  if (m.freq==='every8h') {
+    const [h,mn]=m.time.split(':').map(Number);
+    return [0,8,16].map(add=>({...m,time:`${String((h+add)%24).padStart(2,'0')}:${String(mn).padStart(2,'0')}`,slotKey:`${m.id}_${add}`}));
+  }
+  if (m.freq==='every12h') {
+    const [h,mn]=m.time.split(':').map(Number);
+    return [0,12].map(add=>({...m,time:`${String((h+add)%24).padStart(2,'0')}:${String(mn).padStart(2,'0')}`,slotKey:`${m.id}_${add}`}));
+  }
+  return [{...m,slotKey:m.id}];
+}
+
+function getStatus(slot) {
+  const now=new Date();
+  const [h,mn]=slot.time.split(':').map(Number);
+  const sched=new Date();sched.setHours(h,mn,0,0);
+  const diff=(now-sched)/60000;
+  const log=logs.find(l=>l.slotKey===slot.slotKey&&l.date===todayKey());
+  if (log) return log.status==='taken'?'taken':'skipped';
+  if (diff<-2) return 'upcoming';
+  if (diff<0)  return 'pending';
+  if (diff<35) return 'overdue';
+  return 'missed';
+}
+
+// ── RENDER TODAY ───────────────────────────────────────────────────────
+function renderToday() {
+  const list=document.getElementById('med-list');
+  let slots=[];
+  meds.forEach(m=>slots.push(...getSlots(m)));
+  slots.sort((a,b)=>a.time.localeCompare(b.time));
+
+  if (!slots.length) {
+    list.innerHTML=`<div class="empty">
+      <svg width="56" height="56" viewBox="0 0 72 72" fill="none">
+        <rect width="72" height="72" rx="20" fill="#1A3560" opacity=".4"/>
+        <rect x="14" y="18" width="44" height="36" rx="11" fill="#0F1F3D" stroke="#1E3A5F" stroke-width="1.5"/>
+        <rect x="14" y="32" width="44" height="3" fill="#1E3A5F"/>
+        <ellipse cx="22" cy="33.5" rx="4" ry="2" fill="#1E3A5F"/>
+      </svg>
+      <div class="empty-t">No doses today</div>
+      <div class="empty-s">Tap <strong>+</strong> to add your first medication.</div>
+    </div>`;
+    ['st-taken','st-pending','st-missed'].forEach(id=>document.getElementById(id).textContent='0');
+    updatePillo(); return;
+  }
+
+  let taken=0,pending=0,missed=0,html='';
+  slots.forEach(slot=>{
+    const st=getStatus(slot);
+    if (st==='taken') taken++;
+    else if (!['upcoming','skipped'].includes(st)) pending++;
+    if (st==='missed') missed++;
+
+    const [h,mn]=slot.time.split(':').map(Number);
+    const t12=`${h%12||12}:${String(mn).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+    let acc,cardCls='',bBg,bClr,bTxt,actions='';
+
+    if (st==='taken') {
+      acc='var(--green)';bBg='var(--green-bg)';bClr='var(--green-t)';bTxt='✓ Taken';cardCls='taken';
+    } else if (st==='overdue') {
+      acc='var(--red)';bBg='var(--red-bg)';bClr='var(--red-t)';bTxt='● Late';cardCls='overdue';
+      actions=`<div class="mc-actions"><button class="btn btn-confirm" onclick="markTaken('${slot.slotKey}','${slot.id}')">✓ I took it</button><button class="btn btn-skip" onclick="markSkipped('${slot.slotKey}','${slot.id}')">Skip</button></div>`;
+    } else if (st==='pending') {
+      acc='var(--amber)';bBg='var(--amber-bg)';bClr='var(--amber-t)';bTxt='● Now';cardCls='pending';
+      actions=`<div class="mc-actions"><button class="btn btn-confirm" onclick="markTaken('${slot.slotKey}','${slot.id}')">✓ I took it</button><button class="btn btn-snooze" onclick="snoozeMed('${slot.id}')">+${settings.snooze}m</button></div>`;
+    } else if (st==='missed') {
+      acc='var(--faint)';bBg='var(--bg3)';bClr='var(--muted)';bTxt='Missed';
+    } else if (st==='skipped') {
+      acc='var(--purple)';bBg='#1A1040';bClr='#D4C4FF';bTxt='Skipped';
+    } else {
+      acc='var(--faint)';bBg='var(--bg3)';bClr='var(--muted)';bTxt=t12;
+    }
+
+    html+=`<div class="med-card ${cardCls}" style="--acc:${acc}">
+      <div class="mc-menu"><button class="mc-mbtn" onclick="toggleDD('${slot.id}')">⋯</button>
+      <div class="mc-dd" id="dd-${slot.id}">
+        <div class="mc-ddi" onclick="openModal('${slot.id}');closeDD()">Edit</div>
+        <div class="mc-ddi danger" onclick="deleteMed('${slot.id}')">Delete</div>
+      </div></div>
+      <div class="mc-top"><div><div class="mc-name">${slot.name}</div><div class="mc-dose">${slot.dose}${slot.notes?' · '+slot.notes:''}</div></div>
+      <div class="badge" style="background:${bBg};color:${bClr}">${bTxt}</div></div>
+      <div class="mc-meta">
+        <div class="mc-mi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${t12}</div>
+        <div class="mc-mi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>${freqLabel(slot.freq)}</div>
+      </div>${actions}</div>`;
+  });
+
+  list.innerHTML=html;
+  document.getElementById('st-taken').textContent=taken;
+  document.getElementById('st-pending').textContent=pending;
+  document.getElementById('st-missed').textContent=missed;
+  updatePillo();
+}
+
+function freqLabel(f){return{daily:'Daily',every8h:'Every 8h',every12h:'Every 12h',weekly:'Weekly',specific:'Specific days',once:'Once'}[f]||f;}
+
+// ── MARK ───────────────────────────────────────────────────────────────
+async function markTaken(slotKey,medId) {
+  const today=todayKey();
+  logs=logs.filter(l=>!(l.slotKey===slotKey&&l.date===today));
+  const log={id:slotKey+'_'+today,slotKey,medId,date:today,status:'taken',time:new Date().toISOString()};
+  logs.push(log);
+  await saveLogToDb(log);
+  renderToday();
+  showToast('✓ Logged! Great job.');
+  playSound('taken');
+  if (settings.vibrate&&navigator.vibrate) navigator.vibrate([80,40,80]);
+  setPilloState('happy');
+}
+
+async function markSkipped(slotKey,medId) {
+  const today=todayKey();
+  logs=logs.filter(l=>!(l.slotKey===slotKey&&l.date===today));
+  const log={id:slotKey+'_skip_'+today,slotKey,medId,date:today,status:'skipped',time:new Date().toISOString()};
+  logs.push(log);
+  await saveLogToDb(log);
+  renderToday();
+  showToast('Dose skipped');
+  setPilloState('sad');
+}
+
+function snoozeMed(medId) {
+  showToast(`Reminder in ${settings.snooze} min`);
+  setTimeout(()=>triggerAlarm(medId,true),settings.snooze*60000);
+}
+
+async function deleteMed(id) {
+  if (!confirm('Delete this medication?')) return;
+  meds=meds.filter(m=>m.id!==id);
+  await deletemedFromDb(id);
+  renderToday();renderAllMeds();showToast('Deleted');closeDD();
+}
+
+function toggleDD(id){
+  const dd=document.getElementById('dd-'+id);
+  if(!dd) return;
+  const open=dd.classList.contains('open');
+  closeDD();
+  if(!open) dd.classList.add('open');
+}
+function closeDD(){document.querySelectorAll('.mc-dd').forEach(d=>d.classList.remove('open'));}
+document.addEventListener('click',e=>{if(!e.target.closest('.mc-menu'))closeDD();});
+
+// ── ALL MEDS ────────────────────────────────────────────────────────────
+function renderAllMeds() {
+  const list=document.getElementById('meds-all');
+  if (!meds.length) {
+    list.innerHTML=`<div class="empty"><div class="empty-t">No medications yet</div><div class="empty-s">Use + to add your first one.</div></div>`;
+    return;
+  }
+  list.innerHTML=meds.map(m=>`
+    <div class="med-card" style="--acc:${m.active?'var(--green)':'var(--faint)'}">
+      <div class="mc-menu"><button class="mc-mbtn" onclick="toggleDD('all_${m.id}')">⋯</button>
+      <div class="mc-dd" id="dd-all_${m.id}">
+        <div class="mc-ddi" onclick="openModal('${m.id}');closeDD()">Edit</div>
+        <div class="mc-ddi" onclick="toggleActive('${m.id}')">${m.active?'Pause':'Activate'}</div>
+        <div class="mc-ddi danger" onclick="deleteMed('${m.id}')">Delete</div>
+      </div></div>
+      <div class="mc-top">
+        <div><div class="mc-name">${m.name}</div><div class="mc-dose">${m.dose}</div></div>
+        <div class="badge" style="background:${m.active?'var(--green-bg)':'var(--bg3)'};color:${m.active?'var(--green-t)':'var(--muted)'}">
+          ${m.active?'● Active':'⏸ Paused'}
+        </div>
+      </div>
+      <div class="mc-meta">
+        <div class="mc-mi">🕐 ${m.time}</div>
+        <div class="mc-mi">📅 ${freqLabel(m.freq)}</div>
+      </div>
+      ${m.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">📝 ${m.notes}</div>`:''}
+    </div>`).join('');
+}
+
+async function toggleActive(id) {
+  const m=meds.find(x=>x.id===id);
+  if(m){m.active=!m.active;await saveMedToDb(m);renderAllMeds();renderToday();}
+  closeDD();
+}
+
+// ── HISTORY ─────────────────────────────────────────────────────────────
+function renderHistory() {
+  const now=new Date();
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const dl=logs.filter(l=>l.date===key);
+    const total=meds.filter(m=>m.active).length;
+    days.push({key,d,taken:dl.filter(l=>l.status==='taken').length,total});
+  }
+
+  const dayNames=['M','T','W','T','F','S','S'];
+  document.getElementById('week-dots').innerHTML=days.map(day=>{
+    const dow=(day.d.getDay()+6)%7;
+    const isToday=day.key===todayKey();
+    let bg='#1E3A5F',color='var(--faint)',lbl='–';
+    if(day.total>0){
+      const p=day.taken/day.total;
+      if(p>=1){bg='var(--green)';color='#04160F';lbl='✓';}
+      else if(p>0){bg='var(--amber-bg)';color='var(--amber-t)';lbl=Math.round(p*100)+'%';}
+      else{bg='var(--red-bg)';color='var(--red-t)';lbl='✗';}
+    }
+    return `<div class="wd"><div class="wd-lbl${isToday?' today':''}">${dayNames[dow]}</div>
+      <div class="wd-dot" style="background:${bg};color:${color}">${lbl}</div></div>`;
+  }).join('');
+
+  const tot=days.reduce((s,d)=>s+d.total,0);
+  const tk=logs.filter(l=>days.map(d=>d.key).includes(l.date)&&l.status==='taken').length;
+  const pct=tot>0?Math.round(tk/tot*100):0;
+  document.getElementById('ring-circle').style.strokeDashoffset=175.9-(175.9*pct/100);
+  document.getElementById('ring-pct').textContent=pct+'%';
+  document.getElementById('ring-sub').textContent=tot>0?`${tk} of ${tot} doses this week`:'Add medications to track adherence.';
+
+  const recent=[...logs].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,40);
+  if(!recent.length){document.getElementById('log-list').innerHTML=`<div class="empty"><div class="empty-t">No records yet</div></div>`;return;}
+  document.getElementById('log-list').innerHTML=recent.map(l=>{
+    const m=meds.find(x=>x.id===l.medId);
+    const name=m?m.name:'Deleted medication';
+    const d=new Date(l.time);
+    const ts=d.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const[clr,lbl]=l.status==='taken'?['var(--green)','✓ Taken']:l.status==='skipped'?['var(--amber)','⏭ Skipped']:['var(--red)','✗ Missed'];
+    return `<div class="log-item"><div class="log-dot" style="background:${clr}"></div>
+      <div class="log-info"><div class="log-name">${name}</div><div class="log-time">${ts}</div></div>
+      <div class="log-status" style="color:${clr}">${lbl}</div></div>`;
+  }).join('');
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────
+function renderSettings(){
+  ['notif','vibrate','sound'].forEach(k=>document.getElementById('tog-'+k).classList.toggle('on',settings[k]));
+  document.getElementById('snooze-lbl').textContent=settings.snooze+' min';
+  document.getElementById('snooze-btn').textContent=`Remind me in ${settings.snooze} minutes`;
+}
+async function toggleS(k){settings[k]=!settings[k];await saveSettingsToDb();renderSettings();showToast(settings[k]?'Enabled ✓':'Disabled');}
+async function cycleSnooze(){const opts=[5,10,15,20,30];settings.snooze=opts[(opts.indexOf(settings.snooze)+1)%opts.length];await saveSettingsToDb();renderSettings();showToast(`Snooze: ${settings.snooze} min`);}
+function exportCSV(){
+  let csv='Date,Medication,Dose,Status,Time\n';
+  logs.forEach(l=>{const m=meds.find(x=>x.id===l.medId);csv+=`${l.date},"${m?.name||'?'}","${m?.dose||'?'}",${l.status},${l.time}\n`;});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='pillo-history.csv';a.click();showToast('Exported ✓');
+}
+async function clearAll(){
+  if(!confirm('Delete all medications and history?'))return;
+  for(const m of meds) await deletemedFromDb(m.id);
+  meds=[];logs=[];renderToday();renderAllMeds();showToast('All data cleared');
+}
+
+// ── ALARM ─────────────────────────────────────────────────────────────────
+function checkAlarms(){
+  const now=new Date(),today=todayKey();
+  meds.forEach(m=>{
+    if(!isDueToday(m))return;
+    const[h,mn]=m.time.split(':').map(Number);
+    const diff=(now.getHours()*60+now.getMinutes())-(h*60+mn);
+    const log=logs.find(l=>l.medId===m.id&&l.date===today);
+    if(!log&&diff>=0&&diff<2) triggerAlarm(m.id,false);
+  });
+}
+
+function triggerAlarm(medId,isReminder){
+  const m=meds.find(x=>x.id===medId);
+  if(!m)return;
+  if(logs.find(l=>l.medId===medId&&l.date===todayKey()))return;
+  alarmCount=isReminder?(alarmCount||0)+1:0;
+  currentAlarm={medId,med:m};
+  document.getElementById('alarm-med').textContent=m.name;
+  document.getElementById('alarm-dose').textContent=m.dose+(m.notes?' · '+m.notes:'');
+  document.getElementById('alarm-count').textContent=alarmCount>0?`Reminder #${alarmCount}`:'';
+  document.getElementById('alarm-overlay').classList.add('show');
+  playSound(alarmCount>=2?'grumpy':'alert');
+  if(settings.vibrate&&navigator.vibrate) navigator.vibrate(alarmCount>=2?[400,100,400,100,400]:[300,100,300]);
+  setPilloState(alarmCount>=2?'grumpy':'alert');
+  if(alarmInterval)clearInterval(alarmInterval);
+  alarmInterval=setInterval(()=>{
+    if(!currentAlarm){clearInterval(alarmInterval);return;}
+    alarmCount++;
+    document.getElementById('alarm-count').textContent=`Reminder #${alarmCount}`;
+    playSound('grumpy');
+    if(settings.vibrate&&navigator.vibrate)navigator.vibrate([300,100,300]);
+    setPilloState('grumpy');
+  },settings.snooze*60000);
+}
+
+function confirmAlarm(){
+  if(!currentAlarm)return;
+  clearInterval(alarmInterval);
+  markTaken(currentAlarm.medId,currentAlarm.medId);
+  document.getElementById('alarm-overlay').classList.remove('show');
+  alarmCount=0;currentAlarm=null;
+  setPilloState('happy');
+}
+function snoozeAlarm(){
+  if(!currentAlarm)return;
+  clearInterval(alarmInterval);
+  document.getElementById('alarm-overlay').classList.remove('show');
+  showToast(`Reminder in ${settings.snooze} min`);
+  const id=currentAlarm.medId;
+  setTimeout(()=>triggerAlarm(id,true),settings.snooze*60000);
+}
+function skipAlarm(){
+  if(!currentAlarm)return;
+  clearInterval(alarmInterval);
+  markSkipped(currentAlarm.medId,currentAlarm.medId);
+  document.getElementById('alarm-overlay').classList.remove('show');
+  alarmCount=0;currentAlarm=null;
+}
+
+// ── PILLO STATES ──────────────────────────────────────────────────────────
+const PILLO={
+  calm:  {mood:'All clear ✓',color:'var(--green)', eyeClr:'#3ECFAA',eyeRx:3,   mouth:'M28 47 Q36 52 44 47',antClr:'#3ECFAA',msg:"All done! You're on a roll 🎉"},
+  alert: {mood:'⚠ Alert',   color:'var(--amber)', eyeClr:'#F5A623',eyeRx:3.2, mouth:'M30 48 Q36 45 42 48',antClr:'#F5A623',msg:"Hey, it's almost time. Don't make me ask twice."},
+  grumpy:{mood:'😤 Annoyed', color:'var(--red)',   eyeClr:'#E84545',eyeRx:3.5, mouth:'M26 48 Q36 43 46 48',antClr:'#E84545',msg:"I've reminded you multiple times! Take it NOW."},
+  happy: {mood:'🎉 Happy',   color:'var(--green)', eyeClr:'#3ECFAA',eyeRx:4,   mouth:'M24 46 Q36 56 48 46',antClr:'#3ECFAA',msg:"Perfect! That's all I needed. Keep it up!"},
+  sad:   {mood:'Concerned',  color:'var(--muted)', eyeClr:'#6B8DB5',eyeRx:2.5, mouth:'M29 48 Q36 45 43 48',antClr:'#6B8DB5',msg:"Okay... at least you told me. Tomorrow, no excuses."},
+  sleep: {mood:'Resting',    color:'var(--blue)',  eyeClr:'#1E3A5F',eyeRx:1.5, mouth:'M29 46 Q36 44 43 46',antClr:'#1E3A5F',msg:"No more doses today. Rest well."},
+};
+
+function setPilloState(state){
+  const s=PILLO[state]||PILLO.calm;
+  document.getElementById('pillo-mood').textContent=s.mood;
+  document.getElementById('pillo-mood').style.color=s.color;
+  document.getElementById('pillo-msg').textContent=s.msg;
+  document.getElementById('el').setAttribute('rx',s.eyeRx);document.getElementById('el').setAttribute('ry',s.eyeRx);
+  document.getElementById('er').setAttribute('rx',s.eyeRx);document.getElementById('er').setAttribute('ry',s.eyeRx);
+  document.getElementById('el').setAttribute('fill',s.eyeClr);
+  document.getElementById('er').setAttribute('fill',s.eyeClr);
+  document.getElementById('mouth').setAttribute('d',s.mouth);
+  document.getElementById('mouth').setAttribute('stroke',s.eyeClr);
+  document.getElementById('ant-tip').setAttribute('fill',s.antClr);
+  const w=document.getElementById('pillo-widget');
+  w.style.borderColor=state==='grumpy'?'rgba(232,69,69,.3)':state==='alert'?'rgba(245,166,35,.2)':'var(--border)';
+  w.classList.add('bounce');
+  setTimeout(()=>w.classList.remove('bounce'),600);
+  if(state==='happy'||state==='calm') setTimeout(()=>updatePillo(),4000);
+}
+
+function updatePillo(){
+  const slots=[];meds.forEach(m=>slots.push(...getSlots(m)));
+  if(!slots.length){setPilloState('calm');return;}
+  const statuses=slots.map(s=>getStatus(s));
+  if(statuses.every(s=>s==='taken')){setPilloState('calm');return;}
+  if(statuses.some(s=>s==='overdue')){setPilloState('alert');return;}
+  if(statuses.some(s=>s==='pending')){setPilloState('alert');return;}
+  setPilloState('calm');
+}
+
+// ── SOUNDS ────────────────────────────────────────────────────────────────
+let audioCtx=null;
+function getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
+function tone(f,t,d,v=.08,type='sine'){
+  if(!settings.sound)return;
+  const c=getACtx(),now=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.value=f;o.connect(g);g.connect(c.destination);
+  g.gain.setValueAtTime(0,now+t);g.gain.linearRampToValueAtTime(v,now+t+.015);
+  g.gain.setValueAtTime(v,now+t+d*.7);g.gain.exponentialRampToValueAtTime(.0001,now+t+d);
+  o.start(now+t);o.stop(now+t+d+.05);
+}
+function playSound(name){
+  if(!settings.sound)return;
+  if(name==='taken'){tone(523,.0,.08,.07);tone(659,.1,.08,.08);tone(784,.2,.35,.09);}
+  else if(name==='alert'){tone(880,.0,.12,.1);tone(880,.18,.12,.1);tone(1100,.36,.25,.09);}
+  else if(name==='grumpy'){tone(440,.0,.08,.12);tone(415,.1,.08,.12);tone(370,.3,.3,.1);}
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────────────────
+async function requestNotifPerm(){
+  if('Notification'in window&&Notification.permission==='default') await Notification.requestPermission();
+}
+
+
+// ══════════════════════════════════════════════
+// BRAND SOUND — Netflix/Apple/HBO style
+// Cinematic 3-layer: low pad + shimmer + pillO voice
+// ══════════════════════════════════════════════
+function playBrandSound(){
+  try{
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const c=audioCtx, now=c.currentTime;
+
+    // Reverb impulse
+    const rLen=c.sampleRate*2.5;
+    const rBuf=c.createBuffer(2,rLen,c.sampleRate);
+    for(let ch=0;ch<2;ch++){
+      const d=rBuf.getChannelData(ch);
+      for(let i=0;i<rLen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/rLen,1.8);
+    }
+    const rev=c.createConvolver(); rev.buffer=rBuf; rev.connect(c.destination);
+
+    function pad(freq,t,dur,vol){
+      const o1=c.createOscillator(),o2=c.createOscillator();
+      o1.type='sine'; o2.type='triangle';
+      o1.frequency.value=freq; o2.frequency.value=freq*1.004;
+      const g=c.createGain(), lp=c.createBiquadFilter();
+      lp.type='lowpass'; lp.frequency.value=900;
+      g.gain.setValueAtTime(0,now+t);
+      g.gain.linearRampToValueAtTime(vol,now+t+dur*.3);
+      g.gain.setValueAtTime(vol,now+t+dur*.7);
+      g.gain.exponentialRampToValueAtTime(.0001,now+t+dur);
+      const wg=c.createGain(); wg.gain.value=.55;
+      [o1,o2].forEach(o=>{ o.connect(g); o.start(now+t); o.stop(now+t+dur+.1); });
+      g.connect(lp); lp.connect(c.destination); lp.connect(wg); wg.connect(rev);
+    }
+
+    function shimmer(freq,t,dur,vol){
+      const o=c.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(freq,now+t);
+      o.frequency.linearRampToValueAtTime(freq*1.06,now+t+dur);
+      const g=c.createGain(), wg=c.createGain(); wg.gain.value=.5;
+      g.gain.setValueAtTime(0,now+t);
+      g.gain.linearRampToValueAtTime(vol,now+t+dur*.2);
+      g.gain.exponentialRampToValueAtTime(.0001,now+t+dur);
+      o.connect(g); g.connect(c.destination); g.connect(wg); wg.connect(rev);
+      o.start(now+t); o.stop(now+t+dur+.1);
+    }
+
+    function voice(freq,t,dur,vol,fe,vr,vd){
+      fe=fe||freq; vr=vr||0; vd=vd||0;
+      const s=c.createOscillator(); s.type='sine';
+      s.frequency.setValueAtTime(freq,now+t);
+      if(fe!==freq) s.frequency.linearRampToValueAtTime(fe,now+t+dur);
+      const tr=c.createOscillator(); tr.type='triangle';
+      tr.frequency.setValueAtTime(freq*1.002,now+t);
+      if(fe!==freq) tr.frequency.linearRampToValueAtTime(fe*1.002,now+t+dur);
+      const tg=c.createGain(); tg.gain.value=.18;
+      if(vr>0){
+        const lf=c.createOscillator(), lg=c.createGain();
+        lf.frequency.value=vr; lg.gain.value=vd;
+        lf.connect(lg); lg.connect(s.frequency); lg.connect(tr.frequency);
+        lf.start(now+t+.05); lf.stop(now+t+dur);
+      }
+      const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1200; hp.Q.value=.6;
+      const f1=c.createBiquadFilter(); f1.type='bandpass'; f1.frequency.value=1500; f1.Q.value=3.5;
+      const f2=c.createBiquadFilter(); f2.type='bandpass'; f2.frequency.value=2200; f2.Q.value=3;
+      const fb=c.createGain(); fb.gain.value=1;
+      s.connect(hp); tr.connect(tg); tg.connect(hp);
+      hp.connect(f1); hp.connect(f2); f1.connect(fb); f2.connect(fb);
+      const eg=c.createGain();
+      eg.gain.setValueAtTime(0,now+t);
+      eg.gain.linearRampToValueAtTime(vol,now+t+.013);
+      eg.gain.setValueAtTime(vol,now+t+dur*.62);
+      eg.gain.exponentialRampToValueAtTime(.0001,now+t+dur);
+      const wg=c.createGain(); wg.gain.value=.07;
+      fb.connect(eg); eg.connect(c.destination); eg.connect(wg); wg.connect(rev);
+      [s,tr].forEach(o=>{ o.start(now+t); o.stop(now+t+dur+.08); });
+    }
+
+    // ── SEQUENCE ──
+    pad(110, .0, 3.2, .034);
+    pad(165, .06, 3.1, .020);
+    pad(220, .12, 3.0, .014);
+    shimmer(2200, .55, 2.5, .016);
+    shimmer(3300, .85, 2.0, .012);
+    shimmer(4400, 1.15, 1.6, .008);
+    voice(480, .70, .40, .11, 462, 7, 8);   // "be-wúu"
+    voice(440, 1.16, .58, .10, 408, 7, 8);
+    voice(510, 2.0, .36, .11, 488, 0, 0);   // "díi-paa~"
+    voice(455, 2.44, .70, .10, 398, 8, 9);
+
+  }catch(e){ console.log('Brand sound error:', e); }
+}
+
+
+// ══════════════════════════════════════════════
+// PROFILE SETUP LOGIC
+// ══════════════════════════════════════════════
+let ppCurrentStep = 1;
+const ppProfile = {name:'',ageGroup:'',role:'',motivations:[],reminderStyle:''};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  const el = document.getElementById('screen-'+id);
+  if(el) el.classList.remove('hidden');
+}
+
+function ppVal(){
+  const btn=document.getElementById('pp-main-btn');
+  let valid=false;
+  switch(ppCurrentStep){
+    case 1: valid=document.getElementById('pp-name-inp').value.trim().length>=2; break;
+    case 2: valid=ppProfile.ageGroup!==''; break;
+    case 3: valid=ppProfile.role!==''; break;
+    case 4: valid=ppProfile.motivations.length>0; break;
+    case 5: valid=ppProfile.reminderStyle!==''; break;
+  }
+  btn.disabled=!valid;
+  btn.style.opacity=valid?'1':'.35';
+}
+
+function ppNext(){
+  if(ppCurrentStep<5){
+    const cur=document.getElementById('pp-page-'+ppCurrentStep);
+    cur.style.opacity='0';cur.style.transform='translateX(-28px)';cur.style.pointerEvents='none';
+    ppCurrentStep++;
+    const nxt=document.getElementById('pp-page-'+ppCurrentStep);
+    nxt.style.opacity='1';nxt.style.transform='translateX(0)';nxt.style.pointerEvents='all';
+    const pct=Math.round(ppCurrentStep/5*100);
+    document.getElementById('pp-prog-fill').style.width=pct+'%';
+    document.getElementById('pp-step-lbl').textContent=`Step ${ppCurrentStep} of 5`;
+    document.getElementById('pp-step-pct').textContent=pct+'%';
+    ppVal();
+  } else {
+    ppProfile.name=document.getElementById('pp-name-inp').value.trim()||'Friend';
+    savePPProfile();
+  }
+}
+
+function ppSelAge(el,v){
+  document.querySelectorAll('.pp-age-opt').forEach(i=>{i.style.borderColor='#1E3A5F';i.style.background='#0F1F3D';});
+  el.style.borderColor='#3ECFAA';el.style.background='rgba(62,207,170,.06)';
+  ppProfile.ageGroup=v;ppVal();
+  setTimeout(()=>{if(ppCurrentStep===2)ppNext();},380);
+}
+
+function ppSelRole(el,v){
+  document.querySelectorAll('.pp-role-opt').forEach(o=>{o.style.borderColor='#1E3A5F';o.style.background='#0F1F3D';o.querySelector('.pp-chk').style.background='';o.querySelector('.pp-chk').style.borderColor='#1E3A5F';});
+  el.style.borderColor='#3ECFAA';el.style.background='rgba(62,207,170,.05)';
+  const chk=el.querySelector('.pp-chk');chk.style.background='#3ECFAA';chk.style.borderColor='#3ECFAA';
+  ppProfile.role=v;ppVal();
+  setTimeout(()=>{if(ppCurrentStep===3)ppNext();},380);
+}
+
+function ppTogMotiv(el,v){
+  const sel=el.dataset.sel==='1';
+  if(sel){
+    el.dataset.sel='';el.style.borderColor='#1E3A5F';el.style.background='#0F1F3D';
+    const chk=el.querySelector('.pp-chk');chk.style.background='';chk.style.borderColor='#1E3A5F';
+    ppProfile.motivations=ppProfile.motivations.filter(x=>x!==v);
+  } else {
+    el.dataset.sel='1';el.style.borderColor='#3ECFAA';el.style.background='rgba(62,207,170,.05)';
+    const chk=el.querySelector('.pp-chk');chk.style.background='#3ECFAA';chk.style.borderColor='#3ECFAA';
+    ppProfile.motivations.push(v);
+  }
+  ppVal();
+}
+
+function ppSelRem(el,v){
+  document.querySelectorAll('.pp-rem-opt').forEach(i=>{i.style.borderColor='#1E3A5F';i.style.background='#0F1F3D';});
+  el.style.borderColor='#3ECFAA';el.style.background='rgba(62,207,170,.06)';
+  ppProfile.reminderStyle=v;ppVal();
+}
+
+function skipProfile(){
+  ppProfile.name=currentUser?.displayName?.split(' ')[0]||'Friend';
+  savePPProfile();
+}
+
+async function savePPProfile(){
+  localStorage.setItem('po_profile',JSON.stringify(ppProfile));
+  if(currentUser){
+    try{
+      await db.collection('users').doc(currentUser.uid).set({
+        profile:{...ppProfile, country:navigator.language||'unknown', createdAt:new Date().toISOString()},
+        settings
+      },{merge:true});
+    }catch(e){}
+  }
+  // Show welcome
+  document.getElementById('screen-profile').classList.add('hidden');
+  const wname=ppProfile.name||'there';
+  // Go straight to app with welcome toast
+  initApp();
+  setTimeout(()=>showToast(`Welcome, ${wname}! pillO is happy to meet you 💚`),800);
+}
+
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+</script>
+</body>
+</html>
