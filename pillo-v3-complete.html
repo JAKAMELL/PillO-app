@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="pillO">
-<title>pillO — I'm here to keep you healthy.</title>
+<title>PILLHOY — I'm here to keep you healthy.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -297,7 +297,7 @@ select.form-i{appearance:none;}
       <radialGradient id="spe" cx="37%" cy="33%"><stop offset="0%" stop-color="#80FFE8"/><stop offset="55%" stop-color="#3ECFAA"/><stop offset="100%" stop-color="#1A8060"/></radialGradient>
     </defs>
   </svg>
-  <div class="sp-logo" style="opacity:0;transition:opacity .6s .4s;" id="splash-wordmark">pill<em>O</em></div>
+  <div class="sp-logo" style="font-size:38px;letter-spacing:-2px;" style="opacity:0;transition:opacity .6s .4s;" id="splash-wordmark">PILLHOY</div>
   <div class="sp-tag" id="sp-slogan">"I'm here to keep you healthy."</div>
   <div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
 </div>
@@ -318,7 +318,7 @@ select.form-i{appearance:none;}
       <defs><linearGradient id="lpb" x1="15" y1="30" x2="95" y2="105" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#1E4A7A"/><stop offset="100%" stop-color="#071828"/></linearGradient></defs>
     </svg>
   </div>
-  <div class="login-title">pill<em>O</em> is waiting</div>
+  <div class="login-title">PILLHOY is waiting</div>
   <div class="login-sub">Sign in to keep your data safe across all devices</div>
   <div class="login-btns">
     <button class="lbtn lbtn-google" onclick="loginGoogle()">
@@ -348,7 +348,7 @@ select.form-i{appearance:none;}
 <!-- PROFILE SETUP -->
 <div class="screen hidden" id="s-profile">
   <div class="prof-hdr">
-    <div class="prof-logo">pill<em>O</em></div>
+    <div class="prof-logo">PILLHOY</div>
     <div class="prof-skip" onclick="skipProfile()">Skip</div>
   </div>
   <div class="prog-wrap">
@@ -438,7 +438,7 @@ select.form-i{appearance:none;}
 <!-- MED SETUP -->
 <div class="screen hidden" id="s-med-setup">
   <div class="prof-hdr">
-    <div class="prof-logo">pill<em>O</em></div>
+    <div class="prof-logo">PILLHOY</div>
     <div class="prof-skip" onclick="goToApp()">Do later</div>
   </div>
   <div class="prog-wrap">
@@ -495,6 +495,7 @@ select.form-i{appearance:none;}
   <div class="app-tabs">
     <div class="app-tab active" id="tab-today" onclick="showPage('today')">Today</div>
     <div class="app-tab" id="tab-meds" onclick="showPage('meds')">My Meds</div>
+    <div class="app-tab" id="tab-pharmacy" onclick="showPage('pharmacy')">💊 Pharmacy</div>
     <div class="app-tab" id="tab-history" onclick="showPage('history')">History</div>
     <div class="app-tab" id="tab-profile" onclick="showPage('profile')">Profile</div>
   </div>
@@ -588,6 +589,160 @@ select.form-i{appearance:none;}
         <div id="all-meds-list"></div>
       </div>
     </div>
+
+    <!-- PHARMACY -->
+    <div class="app-page" id="page-pharmacy">
+      <div class="page-content" style="padding-bottom:calc(88px + env(safe-area-inset-bottom,12px));">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0A2E25,#0F1F3D);border-radius:22px;padding:24px 22px;margin-bottom:18px;position:relative;overflow:hidden;">
+          <div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;background:rgba(62,207,170,.08);border-radius:50%;"></div>
+          <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">PILLHOY Connect</div>
+          <div style="font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px;">Your Medication<br>Marketplace</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px;">Never run out of medication again. PILLHOY tracks your supply and connects you to the best prices.</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#04160F;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:700;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Refill tracking coming soon
+          </div>
+        </div>
+
+        <!-- Refill Alerts -->
+        <div class="sec-hdr"><div class="sec-title">⚠ Refill Alerts</div></div>
+        <div id="refill-alerts-list">
+          <div style="background:var(--bg2);border:1px solid rgba(245,166,35,.2);border-radius:18px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:16px;font-weight:700;margin-bottom:4px;">Add medications to track refills</div>
+              <div style="font-size:13px;color:var(--muted);">PILLHOY will alert you when you're running low</div>
+            </div>
+            <div style="font-size:28px;">💊</div>
+          </div>
+        </div>
+
+        <!-- Partner Pharmacies -->
+        <div class="sec-hdr" style="margin-top:8px;"><div class="sec-title">🏪 Partner Pharmacies</div><div style="font-size:11px;color:var(--green);font-weight:700;">Best prices</div></div>
+
+        <!-- Amazon Pharmacy -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:10px;" onclick="openPharmacy('amazon')">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:12px;background:#FF9900;display:flex;align-items:center;justify-content:center;font-size:22px;">📦</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">Amazon Pharmacy</div>
+                <div style="font-size:12px;color:var(--muted);">Free 2-day delivery · Prime members</div>
+              </div>
+            </div>
+            <div style="background:var(--green-bg);color:var(--green);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">Top rated</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ Insurance accepted</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ Generic savings</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ Auto-refill</div>
+          </div>
+          <div style="width:100%;padding:13px;background:linear-gradient(90deg,#FF9900,#FFB84D);color:#1a1a1a;border-radius:14px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;">
+            Shop Amazon Pharmacy →
+          </div>
+        </div>
+
+        <!-- GoodRx -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:10px;" onclick="openPharmacy('goodrx')">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:12px;background:#00A651;display:flex;align-items:center;justify-content:center;font-size:22px;">💚</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">GoodRx</div>
+                <div style="font-size:12px;color:var(--muted);">Compare prices at 70,000+ pharmacies</div>
+              </div>
+            </div>
+            <div style="background:rgba(0,166,81,.1);color:#00A651;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">Save up to 80%</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ No insurance needed</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ Free coupons</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ CVS, Walgreens, Costco</div>
+          </div>
+          <div style="width:100%;padding:13px;background:linear-gradient(90deg,#00A651,#00C860);color:#fff;border-radius:14px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;">
+            Compare Prices on GoodRx →
+          </div>
+        </div>
+
+        <!-- CVS -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:10px;" onclick="openPharmacy('cvs')">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:12px;background:#CC0000;display:flex;align-items:center;justify-content:center;font-size:22px;">🏪</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">CVS Pharmacy</div>
+                <div style="font-size:12px;color:var(--muted);">10,000+ locations across the USA</div>
+              </div>
+            </div>
+            <div style="background:rgba(204,0,0,.1);color:#CC0000;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">Same day pickup</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ ExtraCare rewards</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ MinuteClinic</div>
+            <div style="font-size:12px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;">✓ Auto-refill</div>
+          </div>
+          <div style="width:100%;padding:13px;background:linear-gradient(90deg,#CC0000,#FF3333);color:#fff;border-radius:14px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;">
+            Shop CVS Pharmacy →
+          </div>
+        </div>
+
+        <!-- Walgreens -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:18px;" onclick="openPharmacy('walgreens')">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:12px;background:#E31837;display:flex;align-items:center;justify-content:center;font-size:22px;">💊</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;">Walgreens</div>
+                <div style="font-size:12px;color:var(--muted);">9,000+ locations · Express delivery</div>
+              </div>
+            </div>
+            <div style="background:rgba(227,24,55,.1);color:#E31837;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">myWalgreens rewards</div>
+          </div>
+          <div style="width:100%;padding:13px;background:linear-gradient(90deg,#E31837,#FF4060);color:#fff;border-radius:14px;font-size:14px;font-weight:700;text-align:center;cursor:pointer;">
+            Shop Walgreens →
+          </div>
+        </div>
+
+        <!-- Coming Soon section -->
+        <div class="sec-hdr"><div class="sec-title">🚀 Coming Soon</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">📊</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Price Alerts</div>
+            <div style="font-size:11px;color:var(--muted);">Get notified when your meds drop in price</div>
+            <div style="margin-top:10px;font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;">Coming Q3 2026</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">🔄</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Auto Refill</div>
+            <div style="font-size:11px;color:var(--muted);">PILLHOY orders before you run out</div>
+            <div style="margin-top:10px;font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;">Coming Q3 2026</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">🏥</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Insurance Check</div>
+            <div style="font-size:11px;color:var(--muted);">See what your insurance covers</div>
+            <div style="margin-top:10px;font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;">Coming Q4 2026</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:16px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">👨‍⚕️</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Doctor Connect</div>
+            <div style="font-size:11px;color:var(--muted);">Share adherence reports with your doctor</div>
+            <div style="margin-top:10px;font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;">Coming Q4 2026</div>
+          </div>
+        </div>
+
+        <!-- B2B CTA -->
+        <div style="background:linear-gradient(135deg,#1A2F50,#243D64);border-radius:22px;padding:22px 20px;text-align:center;border:1px solid var(--b2);">
+          <div style="font-size:22px;margin-bottom:8px;">🏢</div>
+          <div style="font-size:18px;font-weight:900;letter-spacing:-.3px;margin-bottom:8px;">Are you a pharmacy or lab?</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.55;">Partner with PILLHOY to reach thousands of patients who need your products every day.</div>
+          <div onclick="window.open('mailto:jorgea.kamell@gmail.com?subject=PILLHOY Partner Program','_blank')" style="display:inline-block;padding:12px 24px;background:var(--green);color:#04160F;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;">
+            Become a Partner →
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- HISTORY -->
     <div class="app-page" id="page-history">
       <div class="page-content">
@@ -640,7 +795,7 @@ select.form-i{appearance:none;}
           <div class="srow" onclick="exportCSV()"><div class="srow-l">Export history</div><div class="srow-r">CSV</div></div>
           <div class="srow" onclick="doSignOut()"><div class="srow-l" style="color:var(--red)">Sign out</div><div class="srow-r">→</div></div>
         </div>
-        <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--faint);font-style:italic;">"I'm here to keep you healthy." · pillO v5.0</div>
+        <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--faint);font-style:italic;">"I'm here to keep you healthy." · PILLHOY v2.0</div>
       </div>
     </div>
   </div>
@@ -649,6 +804,8 @@ select.form-i{appearance:none;}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Today</div>
     <div class="bni" id="bni-meds" onclick="showPage('meds')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="7" cy="12" rx="5" ry="8" transform="rotate(-45 7 12)"/><line x1="7" y1="12" x2="17" y2="12" transform="rotate(-45 12 12)"/></svg>Meds</div>
+    <div class="bni" id="bni-pharmacy" onclick="showPage('pharmacy')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Pharmacy</div>
     <div class="bni" id="bni-history" onclick="showPage('history')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>History</div>
     <div class="bni" id="bni-profile" onclick="showPage('profile')">
@@ -809,7 +966,7 @@ function ppSelRole(el,v){document.querySelectorAll('#pp-role-list .opt-row').for
 function ppTogCond(el,v){el.classList.toggle('sel');if(el.classList.contains('sel'))ppProf.conditions.push(v);else ppProf.conditions=ppProf.conditions.filter(x=>x!==v);ppVal();}
 function ppSelRem(el,v){document.querySelectorAll('#pp-rem-grid .sel-item').forEach(i=>i.classList.remove('sel'));el.classList.add('sel');ppProf.reminderStyle=v;settings.reminderStyle=v;ppVal();}
 function skipProfile(){ppProf.name=CU?.displayName?.split(' ')[0]||'Friend';ppProf.createdAt=new Date().toISOString();Object.assign(profile,ppProf);saveProfile();ss('med-setup');}
-async function saveProfile(){localStorage.setItem('po_profile',JSON.stringify(profile));if(!CU)return;try{await db.collection('users').doc(CU.uid).set({profile,settings},{merge:true});}catch(e){}}
+async function saveProfile(){localStorage.setItem('ph_profile',JSON.stringify(profile));if(!CU)return;try{await db.collection('users').doc(CU.uid).set({profile,settings},{merge:true});}catch(e){}}
 
 // ════════════════════════════════════════
 // MED SETUP
@@ -1048,7 +1205,7 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('tab-'+p)?.classList.add('active');
   document.getElementById('bni-'+p)?.classList.add('active');
-  const fab=document.getElementById('fab');if(fab)fab.style.display=(p==='today'||p==='meds')?'flex':'none';
+  const fab=document.getElementById('fab');if(fab)fab.style.display=(p==='today'||p==='meds')?'flex':'none';if(p==='pharmacy')renderPharmacyRefills();
   if(p==='history')renderHistory();if(p==='meds')renderAllMeds();if(p==='profile')updateProfilePage();
 }
 
@@ -1216,6 +1373,55 @@ function showNotif(title,body,type){if(!('Notification'in window)||Notification.
 // TOAST
 let toastTimer=null;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+
+
+// ════════════════════════════════════════
+// PHARMACY
+// ════════════════════════════════════════
+function openPharmacy(partner){
+  const urls={
+    amazon:'https://pharmacy.amazon.com',
+    goodrx:'https://www.goodrx.com',
+    cvs:'https://www.cvs.com/pharmacy',
+    walgreens:'https://www.walgreens.com/pharmacy'
+  };
+  if(urls[partner])window.open(urls[partner],'_blank');
+}
+
+function renderPharmacyRefills(){
+  const list=document.getElementById('refill-alerts-list');
+  if(!list)return;
+  if(!meds.length){
+    list.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(245,166,35,.2);border-radius:18px;padding:18px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:16px;font-weight:700;margin-bottom:4px;">Add medications to track refills</div><div style="font-size:13px;color:var(--muted);">PILLHOY will alert you when you're running low</div></div><div style="font-size:28px;">💊</div></div>`;
+    return;
+  }
+  // Show meds with refill status
+  let html='';
+  meds.filter(m=>m.active).forEach(m=>{
+    const today=todayKey();
+    const takenThisWeek=logs.filter(l=>l.medId===m.id&&l.status==='taken').length;
+    // Estimate days remaining based on frequency
+    let daysLeft=30; // default
+    if(m.endDate){
+      const end=new Date(m.endDate);const now=new Date();
+      daysLeft=Math.ceil((end-now)/(1000*60*60*24));
+    }
+    const isLow=daysLeft<=7;
+    const clr=isLow?'var(--amber)':'var(--green)';
+    const bg=isLow?'rgba(245,166,35,.1)':'rgba(62,207,170,.05)';
+    const badge=isLow?'⚠ Refill soon':'✓ Stocked';
+    html+=`<div style="background:var(--bg2);border:1px solid ${isLow?'rgba(245,166,35,.3)':'var(--border)'};border-radius:18px;padding:16px 18px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:16px;font-weight:700;">${m.name}</div>
+        <div style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:${bg};color:${clr};">${badge}</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">${m.dose} · ${freqLabel(m.freq)}</div>
+      ${isLow?`<div onclick="showPage('pharmacy')" style="width:100%;padding:11px;background:var(--amber);color:#04160F;border-radius:12px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;">Order refill → Compare prices</div>`:''}
+    </div>`;
+  });
+  if(!html)html=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:10px;"><div style="font-size:16px;font-weight:700;margin-bottom:4px;">All medications stocked ✓</div><div style="font-size:13px;color:var(--muted);">No refills needed right now</div></div>`;
+  list.innerHTML=html;
+}
 
 // SW
 if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));}
